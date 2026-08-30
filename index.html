@@ -42,6 +42,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .btn-filtro:hover{border-color:var(--verde);color:var(--verde)}
 .btn-filtro.ativo{background:var(--verde);border-color:var(--verde);color:#fff}
 
+.seletor-data{display:flex;gap:8px}
+.select-data{font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:600;color:var(--texto);background:var(--branco);border:1.5px solid var(--cinza-borda);border-radius:8px;padding:7px 10px;cursor:pointer}
+.select-data:focus{outline:none;border-color:var(--verde)}
+
 .scorecards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
 .scorecard{background:var(--branco);border-radius:var(--radius-lg);border:1px solid var(--cinza-borda);padding:1.1rem 1rem;text-align:center}
 .scorecard-label{font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
@@ -72,6 +76,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .add-linha input.f-nome{flex:1;min-width:110px}
 .add-linha input.f-valor{width:88px;font-family:'Source Serif 4',serif}
 .add-linha input.f-dia{width:56px;font-family:'Source Serif 4',serif}
+.add-linha input.f-parcelas{width:88px;font-family:'Source Serif 4',serif}
 .btn-add{font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:12.5px;background:var(--verde);color:#fff;border:none;border-radius:6px;padding:7px 14px;cursor:pointer}
 .btn-add:hover{background:var(--verde-escuro)}
 
@@ -86,6 +91,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
 .despesa-linha{display:flex;align-items:center;gap:10px;padding:7px 8px;border-bottom:1px solid var(--cinza-borda);border-radius:6px;transition:background .15s ease}
 .despesa-linha.pago{background:#eef8f4}
+.icone-conta{font-size:15px;flex-shrink:0;width:20px;text-align:center}
 .despesa-linha .dia{width:24px;flex-shrink:0;text-align:right;font-family:'Source Serif 4',serif;font-size:12.5px;color:var(--texto-sec);font-weight:600}
 .despesa-linha .dia.vazio{opacity:.35}
 .despesa-linha .nome{flex:1;font-size:13.5px;background:transparent;border:none;color:var(--texto);font-family:'Source Sans 3',sans-serif;padding:4px 2px;border-radius:4px}
@@ -109,8 +115,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 <div class="header">
   <div class="header-top">
     <div class="header-info">
-      <h1>Painel Financeiro 2026</h1>
-      <p>Orçamento, receitas e contas do mês — toque numa conta pra marcar como paga</p>
+      <h1>Painel Financeiro</h1>
+      <p>Orçamento, receitas e contas — toque numa conta pra marcar como paga</p>
     </div>
   </div>
 </div>
@@ -123,43 +129,47 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 <div class="container">
   <div class="painel-topo">
     <div class="painel-titulo" id="mesTitulo">—</div>
-    <div class="btn-grupo" id="monthRow"></div>
+    <div class="seletor-data">
+      <select class="select-data" id="anoSelect"></select>
+      <select class="select-data" id="mesSelect"></select>
+    </div>
   </div>
   <div id="content"></div>
 </div>
 
 <script id="seed-data" type="application/json">
-{"JAN": {"label": "Janeiro", "paulo": {"orcamento": {"receita_bruta": 10404.1, "receitas_extra": [], "descontos": [{"nome": "SINDICATO", "valor": 1091.61}, {"nome": "Desconto 1", "valor": 2988.0}, {"nome": "Desconto 2", "valor": 2263.39}, {"nome": "Desconto 3", "valor": 136.51}, {"nome": "Desconto 4", "valor": 593.0}], "receita_liquida": 3331.59}, "receitas": [{"nome": "Salários", "valor": 3331.59}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 134.37, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 84.99, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 102.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 3468.0, "receitas_extra": [], "descontos": [{"nome": "EMPRÉSTIMO 7/18", "valor": 593.0}], "receita_liquida": 2875.0}, "receitas": [{"nome": "Salários", "valor": 2875.0}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 1/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.22, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 67.1, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 115.45, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 242.56, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 466.82, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(1/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 230.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 194.01, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}, {"nome": "plano saude", "valor": 699.97, "vencimento": 25, "pago": false}]}}, "FEV": {"label": "Fevereiro", "paulo": {"orcamento": {"receita_bruta": 10720.28, "receitas_extra": [], "descontos": [{"nome": "SINDICATO", "valor": 1091.61}, {"nome": "Desconto 1", "valor": 3093.38}, {"nome": "Desconto 2", "valor": 2368.39}, {"nome": "Desconto 3", "valor": 136.51}, {"nome": "Desconto 4", "valor": 592.62}], "receita_liquida": 3437.77}, "receitas": [{"nome": "Salários", "valor": 3437.77}], "despesas": [{"nome": "Conta de água", "valor": 116.5, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 384.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.0, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 1/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 5995.24, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 3572.42}], "descontos": [{"nome": "EMPRÉSTIMO 8/18", "valor": 593.0}], "receita_liquida": 8974.66}, "receitas": [{"nome": "Salários", "valor": 8974.66}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 2/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.22, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 67.1, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 712.56, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 1/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 435.67, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 1220.4, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(2/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "Cabelo Paulo", "valor": 1800.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "CARTÃO CREDITO STELA", "valor": 130.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "MAR": {"label": "Março", "paulo": {"orcamento": {"receita_bruta": 11997.08, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3519.41}, {"nome": "NECA", "valor": 2794.42}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 3862.52}, "receitas": [{"nome": "Salários", "valor": 3862.52}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 133.6, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 770.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 2/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(1/12)", "valor": 100.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7329.28, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4112.41}], "descontos": [{"nome": "EMPRÉSTIMO 9/18", "valor": 593.0}], "receita_liquida": 10848.69}, "receitas": [{"nome": "Salários", "valor": 10848.69}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 3/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 712.56, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 2/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 129.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 1550.06, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(3/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "GASOLINA", "valor": 600.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 85.99, "vencimento": 16, "pago": false}]}}, "ABR": {"label": "Abril", "paulo": {"orcamento": {"receita_bruta": 12262.86, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3608.0}, {"nome": "NECA", "valor": 2883.01}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 3951.11}, "receitas": [{"nome": "Salários", "valor": 3951.11}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 136.3, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 932.8, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 3/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 102.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(2/12)", "valor": 100.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7073.0, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4201.0}], "descontos": [{"nome": "EMPRÉSTIMO 10/18", "valor": 593.0}], "receita_liquida": 10681.0}, "receitas": [{"nome": "Salários", "valor": 10681.0}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "mãe Stela anualidade colégio", "valor": 250.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 4/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 952.37, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 3/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 129.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 202.05, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(4/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "MAI": {"label": "Maio", "paulo": {"orcamento": {"receita_bruta": 12862.28, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3812.81}, {"nome": "NECA", "valor": 3077.82}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 4150.92}, "receitas": [{"nome": "Salários", "valor": 4150.92}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 117.76, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 364.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 118.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 4/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 38.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 54.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(3/12)", "valor": 100.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 9600.0, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4405.81}], "descontos": [{"nome": "EMPRÉSTIMO 11/18", "valor": 593.0}], "receita_liquida": 13412.81}, "receitas": [{"nome": "Salários", "valor": 13412.81}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 5/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 712.56, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 4/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 148.4, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 748.24, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 381.34, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(5/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "JUN": {"label": "Junho", "paulo": {"orcamento": {"receita_bruta": 12997.74, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3857.96}, {"nome": "NECA", "valor": 3122.97}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 4196.07}, "receitas": [{"nome": "Salários", "valor": 4196.07}], "despesas": [{"nome": "Conta de água", "valor": 130.45, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 121.35, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 670.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 5/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 60.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(4/12)", "valor": 100.0, "vencimento": 28, "pago": false}, {"nome": "metade serviço adiantado", "valor": 500.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7841.98, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4450.96}], "descontos": [{"nome": "EMPRÉSTIMO 12/18", "valor": 593.0}], "receita_liquida": 11699.94}, "receitas": [{"nome": "Salários", "valor": 11699.94}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 6/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 852.92, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 5/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 143.15, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 129.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 1348.9, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 34.33, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(6/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "IPVA MOTO 5/5", "valor": 122.82, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "CARTÃO CREDITO STELA", "valor": 2050.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 86.27, "vencimento": 16, "pago": false}]}}, "JUL": {"label": "Julho", "paulo": {"orcamento": {"receita_bruta": 19132.49, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 5902.88}, {"nome": "NECA", "valor": 5167.89}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 6240.99}, "receitas": [{"nome": "Salários", "valor": 6240.99}], "despesas": [{"nome": "Conta de água", "valor": 116.5, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 925.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.94, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "metade serviço adiantado", "valor": 500.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 12362.65, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 6495.88}], "descontos": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "receita_liquida": 18265.53}, "receitas": [{"nome": "Salários", "valor": 18265.53}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 7/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 237.35, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 76.48, "vencimento": 5, "pago": false}, {"nome": "HAPVIDA", "valor": 1073.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 139.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 186.18, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 234.05, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(7/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 143.15, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "AGO": {"label": "Agosto", "paulo": {"orcamento": {"receita_bruta": 12996.23, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3859.46}, {"nome": "NECA", "valor": 3120.47}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 4195.57}, "receitas": [{"nome": "Salários", "valor": 4195.57}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 135.96, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (1/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7841.98, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4452.46}], "descontos": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "receita_liquida": 11701.44}, "receitas": [{"nome": "Salários", "valor": 11701.44}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 250.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 8/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "HAPIVIDA", "valor": 758.1, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 143.15, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 132.84, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(8/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "SET": {"label": "Setembro", "paulo": {"orcamento": {"receita_bruta": 13020.0, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3867.38}, {"nome": "NECA", "valor": 3128.39}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 4203.49}, "receitas": [{"nome": "Salários", "valor": 4203.49}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 200.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (2/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}, {"nome": "maquina lavar marly", "valor": 340.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7841.98, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4460.38}], "descontos": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "receita_liquida": 11709.36}, "receitas": [{"nome": "Salários", "valor": 11709.36}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 9/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(9/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "OUT": {"label": "Outubro", "paulo": {"orcamento": {"receita_bruta": 11997.08, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3526.41}, {"nome": "NECA", "valor": 2787.42}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 3862.52}, "receitas": [{"nome": "Salários", "valor": 3862.52}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (3/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}, {"nome": "maquina lavar marly", "valor": 170.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7841.98, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4119.41}], "descontos": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "receita_liquida": 11368.39}, "receitas": [{"nome": "Salários", "valor": 11368.39}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 10/10", "valor": 170.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(1012)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "NOV": {"label": "Novembro", "paulo": {"orcamento": {"receita_bruta": 11997.08, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 3526.41}, {"nome": "NECA", "valor": 2787.42}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 3862.52}, "receitas": [{"nome": "Salários", "valor": 3862.52}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.94, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (4/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 7841.98, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4119.41}], "descontos": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "receita_liquida": 11368.39}, "receitas": [{"nome": "Salários", "valor": 11368.39}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(11/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}, "DEZ": {"label": "Dezembro", "paulo": {"orcamento": {"receita_bruta": 13605.64, "receitas_extra": [], "descontos": [{"nome": "Desconto 1", "valor": 1091.61}, {"nome": "EMSB", "valor": 4062.59}, {"nome": "NECA", "valor": 3323.6}, {"nome": "Desconto 2", "valor": 136.51}, {"nome": "Desconto 3", "valor": 592.62}], "receita_liquida": 4398.7}, "receitas": [{"nome": "Salários", "valor": 4398.7}], "despesas": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.94, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (1/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}, {"nome": "maquina lavar marly", "valor": 340.0, "vencimento": 28, "pago": false}]}, "home": {"orcamento": {"receita_bruta": 10185.0, "receitas_extra": [{"nome": "RECEITA BRUTA PENSÃO", "valor": 4655.59}], "descontos": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "receita_liquida": 14247.59}, "receitas": [{"nome": "Salários", "valor": 14247.59}, {"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}], "despesas": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(12/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}}}
+{"home_receita_bruta": {"JAN": 3468.0, "FEV": 5995.24, "MAR": 7329.28, "ABR": 7073.0, "MAI": 9600.0, "JUN": 7841.98, "JUL": 12362.65, "AGO": 7841.98, "SET": 7841.98, "OUT": 7841.98, "NOV": 7841.98, "DEZ": 10185.0}, "home_descontos": {"JAN": [{"nome": "EMPRÉSTIMO 7/18", "valor": 593.0}], "FEV": [{"nome": "EMPRÉSTIMO 8/18", "valor": 593.0}], "MAR": [{"nome": "EMPRÉSTIMO 9/18", "valor": 593.0}], "ABR": [{"nome": "EMPRÉSTIMO 10/18", "valor": 593.0}], "MAI": [{"nome": "EMPRÉSTIMO 11/18", "valor": 593.0}], "JUN": [{"nome": "EMPRÉSTIMO 12/18", "valor": 593.0}], "JUL": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "AGO": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "SET": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "OUT": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "NOV": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}], "DEZ": [{"nome": "EMPRÉSTIMO 13/18", "valor": 593.0}]}, "home_receitas_extra": {"JAN": [], "FEV": [], "MAR": [], "ABR": [], "MAI": [], "JUN": [], "JUL": [], "AGO": [], "SET": [], "OUT": [], "NOV": [], "DEZ": []}, "home_receitas": {"JAN": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 1/10", "valor": 170.0}], "FEV": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 2/10", "valor": 170.0}], "MAR": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 3/10", "valor": 170.0}], "ABR": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "mãe Stela anualidade colégio", "valor": 250.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 4/10", "valor": 170.0}], "MAI": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 5/10", "valor": 170.0}], "JUN": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 6/10", "valor": 170.0}], "JUL": [{"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 7/10", "valor": 170.0}], "AGO": [{"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 250.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 8/10", "valor": 170.0}], "SET": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 9/10", "valor": 170.0}], "OUT": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}, {"nome": "Maquina Lavar Marly 10/10", "valor": 170.0}], "NOV": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}], "DEZ": [{"nome": "Stela faxina", "valor": 800.0}, {"nome": "Stela empréstimo", "valor": 200.0}, {"nome": "Stela anualidade colégio", "valor": 200.0}, {"nome": "compensação paulo Iraci", "valor": 500.0}]}, "home_despesas": {"JAN": [{"nome": "Energia", "valor": 172.22, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 67.1, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 115.45, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 242.56, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 466.82, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(1/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 230.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 194.01, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}, {"nome": "plano saude", "valor": 699.97, "vencimento": 25, "pago": false}], "FEV": [{"nome": "Energia", "valor": 172.22, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 67.1, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 712.56, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 1/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 435.67, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 1220.4, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(2/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "Cabelo Paulo", "valor": 1800.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "CARTÃO CREDITO STELA", "valor": 130.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "MAR": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 712.56, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 2/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 129.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 1550.06, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(3/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "GASOLINA", "valor": 600.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 85.99, "vencimento": 16, "pago": false}], "ABR": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 952.37, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 3/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 129.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 202.05, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(4/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "MAI": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 712.56, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 4/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 148.4, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 748.24, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 381.34, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(5/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "JUN": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "plano saude", "valor": 852.92, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 204.56, "vencimento": 10, "pago": false}, {"nome": "IPVA 5/5", "valor": 100.96, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 143.15, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 129.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 1348.9, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 34.33, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(6/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "IPVA MOTO 5/5", "valor": 122.82, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "CARTÃO CREDITO STELA", "valor": 2050.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 86.27, "vencimento": 16, "pago": false}], "JUL": [{"nome": "Energia", "valor": 237.35, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 76.48, "vencimento": 5, "pago": false}, {"nome": "HAPVIDA", "valor": 1073.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 139.9, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 186.18, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 234.05, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(7/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 143.15, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "AGO": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "HAPIVIDA", "valor": 758.1, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "JAZIGO", "valor": 143.15, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 132.84, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(8/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "SET": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(9/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "OUT": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(1012)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "NOV": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(11/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}], "DEZ": [{"nome": "Energia", "valor": 172.0, "vencimento": 5, "pago": false}, {"nome": "Conta de água", "valor": 68.0, "vencimento": 5, "pago": false}, {"nome": "funerária", "valor": 214.79, "vencimento": 10, "pago": false}, {"nome": "ALARES", "valor": 133.11, "vencimento": 10, "pago": false}, {"nome": "VISA", "valor": 123.7, "vencimento": 10, "pago": false}, {"nome": "MASTER", "valor": 470.36, "vencimento": 10, "pago": false}, {"nome": "Anualidade Enzo(12/12)", "valor": 250.0, "vencimento": 10, "pago": false}, {"nome": "MSA exatas", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "MSA comunidade", "valor": 29.9, "vencimento": 11, "pago": false}, {"nome": "REFORÇO ENZO", "valor": 240.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE KIEL LELE", "valor": 600.0, "vencimento": 15, "pago": false}, {"nome": "FACULDADE STELA", "valor": 237.98, "vencimento": 15, "pago": false}, {"nome": "MEU CLARO", "valor": 35.0, "vencimento": 15, "pago": false}, {"nome": "PÓS PAGO OI", "valor": 80.0, "vencimento": 16, "pago": false}]}, "paulo_despesas": {"JAN": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 134.37, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 84.99, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 102.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}], "FEV": [{"nome": "Conta de água", "valor": 116.5, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 384.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.0, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 1/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}], "MAR": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 133.6, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 770.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 2/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(1/12)", "valor": 100.0, "vencimento": 28, "pago": false}], "ABR": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 136.3, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 932.8, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 113.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 3/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 102.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(2/12)", "valor": 100.0, "vencimento": 28, "pago": false}], "MAI": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 117.76, "vencimento": 1, "pago": false}, {"nome": "08 Faxinas", "valor": 800.0, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 364.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 118.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 4/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 38.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 54.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(3/12)", "valor": 100.0, "vencimento": 28, "pago": false}], "JUN": [{"nome": "Conta de água", "valor": 130.45, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 121.35, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 670.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IPTU 5/5", "valor": 95.08, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 60.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "PARCELAMENTO IPVA(4/12)", "valor": 100.0, "vencimento": 28, "pago": false}, {"nome": "metade serviço adiantado", "valor": 500.0, "vencimento": 28, "pago": false}], "JUL": [{"nome": "Conta de água", "valor": 116.5, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 925.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.94, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "Fatura celular", "valor": 48.0, "vencimento": 28, "pago": false}, {"nome": "metade serviço adiantado", "valor": 500.0, "vencimento": 28, "pago": false}], "AGO": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 135.96, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (1/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}], "SET": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "PIX  MÊS PASSADO", "valor": 200.0, "vencimento": 8, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (2/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}, {"nome": "maquina lavar marly", "valor": 340.0, "vencimento": 28, "pago": false}], "OUT": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 93.53, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (3/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}, {"nome": "maquina lavar marly", "valor": 170.0, "vencimento": 28, "pago": false}], "NOV": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.94, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (4/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}], "DEZ": [{"nome": "Conta de água", "valor": 127.86, "vencimento": 1, "pago": false}, {"nome": "Energia", "valor": 143.42, "vencimento": 1, "pago": false}, {"nome": "Aluguel", "valor": 800.0, "vencimento": 8, "pago": false}, {"nome": "TV por assinatura/ Internet", "valor": 95.94, "vencimento": 8, "pago": false}, {"nome": "funerária+jazigo", "valor": 120.0, "vencimento": 10, "pago": false}, {"nome": "IRMÃ PAULO (1/4)", "valor": 1000.0, "vencimento": 10, "pago": false}, {"nome": "Iraci", "valor": 500.0, "vencimento": 10, "pago": false}, {"nome": "Uber", "valor": 12.0, "vencimento": 10, "pago": false}, {"nome": "seguro bb", "valor": 13.0, "vencimento": 28, "pago": false}, {"nome": "reserva loucura 1", "valor": 500.0, "vencimento": 28, "pago": false}, {"nome": "maquina lavar marly", "valor": 340.0, "vencimento": 28, "pago": false}]}, "paulo_receitas": {"JAN": [], "FEV": [], "MAR": [], "ABR": [], "MAI": [], "JUN": [], "JUL": [], "AGO": [], "SET": [], "OUT": [], "NOV": [], "DEZ": []}}
+</script>
+<script id="contracheque-seed" type="application/json">
+{"JAN": null, "FEV": null, "MAR": 10176.34, "ABR": 10442.12, "MAI": 11041.54, "JUN": 11177.0, "JUL": 17311.75, "AGO": 11175.49, "SET": 11199.26, "OUT": 10176.34, "NOV": 10176.34, "DEZ": 11784.9}
 
 </script>
 
 <script>
 (function(){
   const SEED = JSON.parse(document.getElementById('seed-data').textContent);
+  const CONTRACHEQUE_SEED = JSON.parse(document.getElementById('contracheque-seed').textContent);
   const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const YEARS = ['2024','2025','2026','2027'];
   const PEOPLE = [
     {key:'home', label:'Minhas Contas'},
     {key:'paulo', label:'Paulo'}
   ];
 
+  const now = new Date();
   let state = {
     person: 'home',
-    month: (function(){
-      const now = new Date();
-      const idx = now.getMonth();
-      return MONTHS[idx];
-    })()
+    year: '2026',
+    month: MONTHS[now.getFullYear()===2026 ? now.getMonth() : 0]
   };
 
   const fmt = (n) => (Number(n)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
   const parseMoney = (str) => {
     if(str==null || str==='') return 0;
     let s = String(str).trim().replace(/[^\d,.\-]/g,'');
-    if(s.includes(',') && s.includes('.')){
-      s = s.replace(/\./g,'').replace(',', '.');
-    } else if(s.includes(',')){
-      s = s.replace(',', '.');
-    }
+    if(s.includes(',') && s.includes('.')){ s = s.replace(/\./g,'').replace(',', '.'); }
+    else if(s.includes(',')){ s = s.replace(',', '.'); }
     const v = parseFloat(s);
     return isNaN(v) ? 0 : v;
   };
@@ -169,10 +179,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     input.inputMode = 'decimal';
     input.className = className;
     input.value = fmt(getValue());
-    input.onfocus = ()=>{
-      input.value = input.value.replace(/\./g,'');
-      input.select();
-    };
+    input.onfocus = ()=>{ input.value = input.value.replace(/\./g,''); input.select(); };
     input.onblur = ()=>{
       const v = parseMoney(input.value);
       onCommit(v);
@@ -182,42 +189,38 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     return input;
   }
 
-  function storageKey(person, month){
-    return `dados:${person}:${month}`;
-  }
+  function storageKey(person, year, month){ return `dados:${person}:${year}:${month}`; }
 
-  function defaultDataFor(person, month){
-    const seedMonth = SEED[month];
-    const seedPerson = seedMonth ? seedMonth[person] : null;
-    if(!seedPerson){
-      return { orcamento:{receita_bruta:0, descontos:[]}, receitas:[], despesas:[] };
+  function defaultDataFor(person, year, month){
+    const is2026 = (year === '2026');
+    if(person === 'paulo'){
+      return {
+        receita_liquida: is2026 ? (CONTRACHEQUE_SEED[month] || 0) : 0,
+        emprestimos: [
+          {nome:'Empréstimo Neca', valor:0},
+          {nome:'Empréstimo Paulo', valor:0},
+          {nome:'Meu Empréstimo', valor:0}
+        ],
+        receitas: [],
+        despesas: is2026 ? (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : []
+      };
     }
-    const receitas = (seedPerson.receitas||[]).filter(r => r.nome.trim().toLowerCase() !== 'salários');
-    const despesas = (seedPerson.despesas||[]).map(d => ({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false}));
     return {
-      orcamento: {
-        receita_bruta: seedPerson.orcamento.receita_bruta || 0,
-        receitas_extra: (seedPerson.orcamento.receitas_extra||[]).map(d=>({nome:d.nome, valor:d.valor})),
-        descontos: (seedPerson.orcamento.descontos||[]).map(d=>({nome:d.nome, valor:d.valor}))
-      },
-      receitas: receitas.map(r=>({nome:r.nome, valor:r.valor})),
-      despesas: despesas
+      receita_bruta: is2026 ? (SEED.home_receita_bruta[month]||0) : 0,
+      descontos: is2026 ? (SEED.home_descontos[month]||[]).map(d=>({nome:d.nome, valor:d.valor})) : [],
+      receitas_extra_manual: is2026 ? (SEED.home_receitas_extra[month]||[]).map(d=>({nome:d.nome, valor:d.valor})) : [],
+      receitas: is2026 ? (SEED.home_receitas[month]||[]).map(r=>({nome:r.nome, valor:r.valor})) : [],
+      despesas: is2026 ? (SEED.home_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : []
     };
   }
 
   let cache = {};
   let saveTimers = {};
 
-  // Cole aqui a URL do seu Apps Script (ver instruções) para sincronizar
-  // entre aparelhos quando estiver publicado fora do Claude (ex: GitHub Pages).
-  // Deixe como '' para usar apenas o armazenamento local do navegador.
   const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbyoQDn4AIXMYzbzVq6701oTfT0NnR1bsJWbUs7hIF_PqGamZJf9ZdCIgvQuEgnbaWmv/exec';
 
   async function storageGet(key){
-    if(window.storage){
-      try{ return await window.storage.get(key, false); }
-      catch(e){ return null; }
-    }
+    if(window.storage){ try{ return await window.storage.get(key, false); }catch(e){ return null; } }
     if(SHEETS_API_URL){
       try{
         const res = await fetch(SHEETS_API_URL + '?key=' + encodeURIComponent(key));
@@ -228,69 +231,98 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         }
       }catch(e){ console.error('Sem conexão com a planilha, usando cópia local', e); }
     }
-    try{
-      const v = localStorage.getItem(key);
-      return v!=null ? {value:v} : null;
-    }catch(e){ return null; }
+    try{ const v = localStorage.getItem(key); return v!=null ? {value:v} : null; }catch(e){ return null; }
   }
 
   async function storageSet(key, value){
-    if(window.storage){
-      try{ return await window.storage.set(key, value, false); }
-      catch(e){ console.error('Erro ao salvar', e); return; }
-    }
+    if(window.storage){ try{ return await window.storage.set(key, value, false); }catch(e){ console.error('Erro ao salvar', e); return; } }
     try{ localStorage.setItem(key, value); }catch(e){}
     if(SHEETS_API_URL){
       try{
-        await fetch(SHEETS_API_URL, {
-          method:'POST',
-          headers: {'Content-Type':'text/plain;charset=utf-8'},
-          body: JSON.stringify({key, value})
-        });
+        await fetch(SHEETS_API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({key, value}) });
       }catch(e){ console.error('Erro ao sincronizar com a planilha', e); }
     }
   }
 
-  async function loadData(person, month){
-    const key = storageKey(person, month);
+  async function loadData(person, year, month){
+    const key = storageKey(person, year, month);
     if(cache[key]) return cache[key];
     try{
       const res = await storageGet(key);
-      if(res && res.value){
-        cache[key] = JSON.parse(res.value);
-        return cache[key];
-      }
+      if(res && res.value){ cache[key] = JSON.parse(res.value); return cache[key]; }
     }catch(e){}
-    const seeded = defaultDataFor(person, month);
+    const seeded = defaultDataFor(person, year, month);
     cache[key] = seeded;
-    saveData(person, month);
+    saveData(person, year, month);
     return seeded;
   }
 
-  function saveData(person, month){
-    const key = storageKey(person, month);
+  function saveData(person, year, month){
+    const key = storageKey(person, year, month);
     clearTimeout(saveTimers[key]);
     saveTimers[key] = setTimeout(()=>{ storageSet(key, JSON.stringify(cache[key])); }, 250);
   }
 
-  function calcOrcamento(o){
-    const descTotal = (o.descontos||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
-    const extraTotal = (o.receitas_extra||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
-    const bruta = Number(o.receita_bruta)||0;
-    return { bruta, extraTotal, descTotal, liquida: bruta + extraTotal - descTotal };
+  function nextYearMonth(year, month, offset){
+    let idx = MONTHS.indexOf(month) + offset;
+    let y = parseInt(year);
+    while(idx > 11){ idx -= 12; y += 1; }
+    while(idx < 0){ idx += 12; y -= 1; }
+    return { year: String(y), month: MONTHS[idx] };
   }
 
-  function calcTotals(data){
-    const orc = calcOrcamento(data.orcamento);
-    const outrasReceitas = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
-    const totalReceitas = orc.liquida + outrasReceitas;
+  // ---------- Cálculos ----------
+  function calcPauloOrcamento(pauloData){
+    const soma = (pauloData.emprestimos||[]).reduce((s,e)=>s+(Number(e.valor)||0),0);
+    const receitaLiquida = Number(pauloData.receita_liquida)||0;
+    const receitaBruta = receitaLiquida + soma;
+    return { receitaLiquida, somaEmprestimos: soma, receitaBruta };
+  }
+
+  function getFunerariaJazigo(homeData){
+    return (homeData.despesas||[]).filter(d=>{
+      const n = (d.nome||'').toLowerCase();
+      return n.includes('funer') || n.includes('jazigo');
+    }).reduce((s,d)=>s+(Number(d.valor)||0),0);
+  }
+
+  function calcRemuneracoes(pauloData, homeData){
+    const { receitaBruta } = calcPauloOrcamento(pauloData);
+    const terco = receitaBruta / 3;
+    const fj = getFunerariaJazigo(homeData);
+    const empNeca = (pauloData.emprestimos[0] && pauloData.emprestimos[0].valor) || 0;
+    const empMeu = (pauloData.emprestimos[2] && pauloData.emprestimos[2].valor) || 0;
+    const neca = terco - empNeca - fj;
+    const emsb = terco - empMeu - fj;
+    return { terco, fj, neca, emsb, total: neca + emsb };
+  }
+
+  function calcHomeOrcamento(homeData, pauloData){
+    const bruta = Number(homeData.receita_bruta)||0;
+    const pensaoAuto = calcRemuneracoes(pauloData, homeData).emsb;
+    const extraManual = (homeData.receitas_extra_manual||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
+    const descTotal = (homeData.descontos||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
+    const liquida = bruta + pensaoAuto + extraManual - descTotal;
+    return { bruta, pensaoAuto, extraManual, descTotal, liquida };
+  }
+
+  function calcTotals(person, data, otherData){
+    let totalReceitas;
+    if(person === 'paulo'){
+      const { receitaLiquida } = calcPauloOrcamento(data);
+      const outras = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
+      totalReceitas = receitaLiquida + outras;
+    } else {
+      const { liquida } = calcHomeOrcamento(data, otherData);
+      const outras = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
+      totalReceitas = liquida + outras;
+    }
     const totalDespesas = (data.despesas||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
-    const totalPago = (data.despesas||[]).filter(d=>d.pago).reduce((s,d)=>s+(Number(d.valor)||0),0);
-    const emContaAgora = totalReceitas - totalPago;
     const saldoFinal = totalReceitas - totalDespesas;
-    return {orc, outrasReceitas, totalReceitas, totalDespesas, totalPago, emContaAgora, saldoFinal};
+    return { totalReceitas, totalDespesas, saldoFinal };
   }
 
+  // ---------- Navegação ----------
   function renderTabs(){
     const wrap = document.getElementById('personTabs');
     wrap.innerHTML = '';
@@ -303,56 +335,54 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     });
   }
 
-  function renderMonths(){
-    const wrap = document.getElementById('monthRow');
-    wrap.innerHTML = '';
-    MONTHS.forEach(m=>{
-      const b = document.createElement('button');
-      b.className = 'btn-filtro' + (state.month===m ? ' ativo':'');
-      b.textContent = SEED[m] ? SEED[m].label.slice(0,3) : m;
-      b.onclick = ()=>{ state.month = m; render(); };
-      wrap.appendChild(b);
-    });
-    document.getElementById('mesTitulo').textContent = SEED[state.month] ? SEED[state.month].label : state.month;
+  function renderSeletorData(){
+    const anoSel = document.getElementById('anoSelect');
+    const mesSel = document.getElementById('mesSelect');
+    anoSel.innerHTML = YEARS.map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('');
+    mesSel.innerHTML = MONTHS.map((m,i)=>`<option value="${m}" ${m===state.month?'selected':''}>${MONTH_LABELS[i]}</option>`).join('');
+    anoSel.onchange = ()=>{ state.year = anoSel.value; render(); };
+    mesSel.onchange = ()=>{ state.month = mesSel.value; render(); };
+    document.getElementById('mesTitulo').textContent = MONTH_LABELS[MONTHS.indexOf(state.month)] + ' / ' + state.year;
   }
 
   async function render(){
     renderTabs();
-    renderMonths();
+    renderSeletorData();
     const content = document.getElementById('content');
     content.innerHTML = '<div class="empty-hint">Carregando…</div>';
-    const data = await loadData(state.person, state.month);
+    const pauloData = await loadData('paulo', state.year, state.month);
+    const homeData = await loadData('home', state.year, state.month);
+    const data = state.person === 'paulo' ? pauloData : homeData;
+    const other = state.person === 'paulo' ? homeData : pauloData;
+
     content.innerHTML = '';
-    content.appendChild(buildSummary(data));
-    content.appendChild(buildOrcamentoCard(data));
-    content.appendChild(buildReceitasCard(data));
+    content.appendChild(buildSummary(state.person, data, other));
+    if(state.person === 'paulo'){
+      content.appendChild(buildOrcamentoPaulo(pauloData));
+      content.appendChild(buildRemuneracoesCard(pauloData, homeData));
+    } else {
+      content.appendChild(buildOrcamentoHome(homeData, pauloData));
+      const { liquida } = calcHomeOrcamento(homeData, pauloData);
+      content.appendChild(buildReceitasCard('home', homeData, liquida));
+    }
     content.appendChild(buildDespesasCard(data));
   }
 
-  function persistAndRerenderTotals(){
-    saveData(state.person, state.month);
-    const data = cache[storageKey(state.person, state.month)];
-    updateOrcamentoLiquida(data);
-    updateSummary(data);
-    updateReceitasTotal(data);
-    updateDespesasTotal(data);
+  function persistAndRerender(){
+    saveData(state.person, state.year, state.month);
+    render();
   }
 
   // ---------- SUMMARY ----------
-  function buildSummary(data){
+  function buildSummary(person, data, other){
     const wrap = document.createElement('div');
     wrap.className = 'scorecards';
-    wrap.id = 'summary';
-    wrap.innerHTML = summaryHTML(data);
-    return wrap;
-  }
-  function summaryHTML(data){
-    const t = calcTotals(data);
-    return `
+    const t = calcTotals(person, data, other);
+    wrap.innerHTML = `
       <div class="scorecard">
         <div class="scorecard-label">Total receitas</div>
         <div class="scorecard-valor azul">R$ ${fmt(t.totalReceitas)}</div>
-        <div class="scorecard-sub">salário + outras entradas</div>
+        <div class="scorecard-sub">receita líquida + outras entradas</div>
       </div>
       <div class="scorecard">
         <div class="scorecard-label">Total contas</div>
@@ -364,263 +394,255 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         <div class="scorecard-valor ${t.saldoFinal<0?'vermelho':'verde'}">R$ ${fmt(t.saldoFinal)}</div>
         <div class="scorecard-sub">receitas − contas do mês</div>
       </div>`;
-  }
-  function updateSummary(data){
-    const el = document.getElementById('summary');
-    if(el) el.innerHTML = summaryHTML(data);
+    return wrap;
   }
 
-  // ---------- ORÇAMENTO ----------
-  function buildOrcamentoCard(data){
+  // ---------- ORÇAMENTO PAULO ----------
+  function buildOrcamentoPaulo(data){
     const card = document.createElement('div');
     card.className = 'card';
+    const { receitaLiquida, somaEmprestimos, receitaBruta } = calcPauloOrcamento(data);
 
-    const head = document.createElement('div');
-    head.className = 'card-titulo';
-    head.innerHTML = `<span><span class="tag">1</span>Orçamento</span>`;
-    card.appendChild(head);
+    card.innerHTML = `<div class="card-titulo"><span><span class="tag">1</span>Orçamento</span></div>`;
+
+    const liqRow = document.createElement('div');
+    liqRow.className = 'bruta-linha';
+    liqRow.innerHTML = `<label>Receita líquida (contracheque)</label>`;
+    const liqInput = makeMoneyInput(
+      ()=>data.receita_liquida,
+      (v)=>{ data.receita_liquida = v; persistAndRerender(); },
+      ''
+    );
+    liqRow.appendChild(liqInput);
+    card.appendChild(liqRow);
+
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.03em;margin:10px 0 2px;';
+    label.textContent = 'Empréstimos fixos';
+    card.appendChild(label);
+
+    const list = document.createElement('div');
+    (data.emprestimos||[]).forEach((e)=>{
+      const row = document.createElement('div');
+      row.className = 'linha';
+      const nome = document.createElement('span');
+      nome.className = 'nome';
+      nome.style.pointerEvents = 'none';
+      nome.style.opacity = '.85';
+      nome.textContent = e.nome;
+      const valI = makeMoneyInput(
+        ()=>e.valor,
+        (v)=>{ e.valor = v; persistAndRerender(); },
+        'valor'
+      );
+      row.appendChild(nome); row.appendChild(valI);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+
+    const brutaBox = document.createElement('div');
+    brutaBox.className = 'liquida-box';
+    brutaBox.innerHTML = `<span class="lbl">Receita bruta (calculada)</span><span class="val">R$ ${fmt(receitaBruta)}</span>`;
+    card.appendChild(brutaBox);
+
+    const totalLine = document.createElement('div');
+    totalLine.className = 'total-line';
+    totalLine.innerHTML = `<span>Total do orçamento</span><span>R$ ${fmt(receitaBruta)}</span>`;
+    card.appendChild(totalLine);
+
+    return card;
+  }
+
+  // ---------- REMUNERAÇÕES (só Paulo) ----------
+  function buildRemuneracoesCard(pauloData, homeData){
+    const card = document.createElement('div');
+    card.className = 'card';
+    const r = calcRemuneracoes(pauloData, homeData);
+    card.innerHTML = `
+      <div class="card-titulo"><span><span class="tag">2</span>Remunerações</span></div>
+      <div class="linha"><span class="nome" style="pointer-events:none;">EMSB</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.emsb)}</span></div>
+      <div class="linha"><span class="nome" style="pointer-events:none;">NECA</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.neca)}</span></div>
+      <div class="total-line"><span>Total remunerações</span><span>R$ ${fmt(r.total)}</span></div>
+      <div class="empty-hint" style="margin-top:6px;">Base: receita bruta ÷ 3 = R$ ${fmt(r.terco)} · Funerária + Jazigo do mês (Minhas Contas): R$ ${fmt(r.fj)}</div>
+    `;
+    return card;
+  }
+
+  // ---------- ORÇAMENTO HOME ----------
+  function buildOrcamentoHome(data, pauloData){
+    const card = document.createElement('div');
+    card.className = 'card';
+    const o = calcHomeOrcamento(data, pauloData);
+    card.innerHTML = `<div class="card-titulo"><span><span class="tag">1</span>Orçamento</span></div>`;
 
     const brutaRow = document.createElement('div');
     brutaRow.className = 'bruta-linha';
     brutaRow.innerHTML = `<label>Receita bruta</label>`;
     const brutaInput = makeMoneyInput(
-      ()=>data.orcamento.receita_bruta,
-      (v)=>{ data.orcamento.receita_bruta = v; persistAndRerenderTotals(); },
+      ()=>data.receita_bruta,
+      (v)=>{ data.receita_bruta = v; persistAndRerender(); },
       ''
     );
     brutaRow.appendChild(brutaInput);
     card.appendChild(brutaRow);
 
+    const pensaoRow = document.createElement('div');
+    pensaoRow.className = 'linha';
+    pensaoRow.innerHTML = `<span class="nome" style="opacity:.75;pointer-events:none;">Receita bruta pensão (EMSB do Paulo)</span><span class="valor" style="pointer-events:none;color:var(--verde-escuro);">R$ ${fmt(o.pensaoAuto)}</span>`;
+    card.appendChild(pensaoRow);
+
     const extraLabel = document.createElement('div');
-    extraLabel.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--verde-escuro);text-transform:uppercase;letter-spacing:.03em;margin:6px 0 2px;';
-    extraLabel.textContent = 'Receitas adicionais (somam)';
+    extraLabel.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--verde-escuro);text-transform:uppercase;letter-spacing:.03em;margin:10px 0 2px;';
+    extraLabel.textContent = 'Outras receitas adicionais (somam)';
     card.appendChild(extraLabel);
-
     const extraList = document.createElement('div');
-    extraList.id = 'extra-list';
+    renderListaSimples(extraList, data.receitas_extra_manual, 'var(--verde-escuro)', ()=>{ persistAndRerender(); });
     card.appendChild(extraList);
-    renderReceitasExtra(extraList, data);
-
-    const addExtraLine = document.createElement('div');
-    addExtraLine.className = 'add-linha';
-    addExtraLine.innerHTML = `
-      <input class="f-nome" placeholder="Ex: pensão">
-      <input class="f-valor" type="number" step="0.01" placeholder="Valor">
-      <button class="btn-add">+ Receita extra</button>`;
-    const exNameI = addExtraLine.querySelector('.f-nome');
-    const exValI = addExtraLine.querySelector('.f-valor');
-    addExtraLine.querySelector('.btn-add').onclick = ()=>{
-      const nome = exNameI.value.trim();
-      const valor = parseFloat(exValI.value)||0;
-      if(!nome) return;
-      data.orcamento.receitas_extra.push({nome, valor});
-      exNameI.value=''; exValI.value='';
-      renderReceitasExtra(extraList, data);
-      persistAndRerenderTotals();
-    };
-    card.appendChild(addExtraLine);
+    card.appendChild(addLineFor('+ Receita extra', (nome,valor)=>{
+      data.receitas_extra_manual.push({nome,valor}); persistAndRerender();
+    }));
 
     const descLabel = document.createElement('div');
     descLabel.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--vermelho);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 2px;';
     descLabel.textContent = 'Descontos (subtraem)';
     card.appendChild(descLabel);
-
     const descList = document.createElement('div');
-    descList.id = 'desc-list';
+    renderListaSimples(descList, data.descontos, null, ()=>{ persistAndRerender(); });
     card.appendChild(descList);
-    renderDescontos(descList, data);
-
-    const addLine = document.createElement('div');
-    addLine.className = 'add-linha';
-    addLine.innerHTML = `
-      <input class="f-nome" placeholder="Novo desconto (ex: sindicato)">
-      <input class="f-valor" type="number" step="0.01" placeholder="Valor">
-      <button class="btn-add">+ Desconto</button>`;
-    const nameI = addLine.querySelector('.f-nome');
-    const valI = addLine.querySelector('.f-valor');
-    addLine.querySelector('.btn-add').onclick = ()=>{
-      const nome = nameI.value.trim();
-      const valor = parseFloat(valI.value)||0;
-      if(!nome) return;
-      data.orcamento.descontos.push({nome, valor});
-      nameI.value=''; valI.value='';
-      renderDescontos(descList, data);
-      persistAndRerenderTotals();
-    };
-    card.appendChild(addLine);
+    card.appendChild(addLineFor('+ Desconto', (nome,valor)=>{
+      data.descontos.push({nome,valor}); persistAndRerender();
+    }));
 
     const liquidaBox = document.createElement('div');
     liquidaBox.className = 'liquida-box';
-    liquidaBox.id = 'liquida-box';
+    liquidaBox.innerHTML = `<span class="lbl">Receita líquida</span><span class="val">R$ ${fmt(o.liquida)}</span>`;
     card.appendChild(liquidaBox);
-    updateOrcamentoLiquida(data);
 
     return card;
   }
 
-  function renderReceitasExtra(container, data){
-    container.innerHTML = '';
-    (data.orcamento.receitas_extra||[]).forEach((d, i)=>{
-      const row = document.createElement('div');
-      row.className = 'linha';
-      const nameI = document.createElement('input');
-      nameI.className = 'nome'; nameI.value = d.nome;
-      nameI.oninput = ()=>{ d.nome = nameI.value; persistAndRerenderTotals(); };
-      const valI = makeMoneyInput(
-        ()=>d.valor,
-        (v)=>{ d.valor = v; persistAndRerenderTotals(); },
-        'valor'
-      );
-      valI.style.color = 'var(--verde-escuro)';
-      const del = document.createElement('button');
-      del.className = 'del'; del.innerHTML = '✕';
-      del.onclick = ()=>{ data.orcamento.receitas_extra.splice(i,1); renderReceitasExtra(container,data); persistAndRerenderTotals(); };
-      row.appendChild(nameI); row.appendChild(valI); row.appendChild(del);
-      container.appendChild(row);
-    });
-    if(!(data.orcamento.receitas_extra||[]).length){
-      container.innerHTML = '<div class="empty-hint">Sem receitas adicionais (ex: pensão).</div>';
+  function getIconeConta(nome){
+    const n = (nome||'').toLowerCase();
+    const mapa = [
+      [['água','agua'], '💧'],
+      [['energia','luz','enel','coelce'], '⚡'],
+      [['internet','wifi','net ','alares'], '🌐'],
+      [['telefone','celular','tim','vivo','claro','oi ','pago oi'], '📱'],
+      [['aluguel'], '🏠'],
+      [['condomínio','condominio'], '🏢'],
+      [['mercado','feira','supermercado','compras'], '🛒'],
+      [['combustível','combustivel','gasolina','posto'], '⛽'],
+      [['farmácia','farmacia','remédio','remedio','saúde','saude','médico','medico','plano'], '💊'],
+      [['escola','colégio','colegio','faculdade','curso','reforço','reforco'], '🎓'],
+      [['cartão','cartao','crédito','credito','visa','master'], '💳'],
+      [['carro','consórcio','consorcio','veículo','veiculo'], '🚗'],
+      [['seguro'], '🛡️'],
+      [['funerária','funeraria','jazigo'], '🕯️'],
+      [['tv','streaming','netflix','clube'], '📺'],
+      [['empréstimo','emprestimo'], '💸'],
+      [['iptu','imposto','taxa'], '🧾'],
+    ];
+    for(const [chaves, icone] of mapa){
+      if(chaves.some(k=>n.includes(k))) return icone;
     }
+    return '📄';
   }
 
-  function renderDescontos(container, data){
-    container.innerHTML = '';
-    (data.orcamento.descontos||[]).forEach((d, i)=>{
-      const row = document.createElement('div');
-      row.className = 'linha';
-      const nameI = document.createElement('input');
-      nameI.className = 'nome'; nameI.value = d.nome;
-      nameI.oninput = ()=>{ d.nome = nameI.value; persistAndRerenderTotals(); };
-      const valI = makeMoneyInput(
-        ()=>d.valor,
-        (v)=>{ d.valor = v; persistAndRerenderTotals(); },
-        'valor'
-      );
-      const del = document.createElement('button');
-      del.className = 'del'; del.innerHTML = '✕';
-      del.onclick = ()=>{ data.orcamento.descontos.splice(i,1); renderDescontos(container,data); persistAndRerenderTotals(); };
-      row.appendChild(nameI); row.appendChild(valI); row.appendChild(del);
-      container.appendChild(row);
-    });
-    if(!(data.orcamento.descontos||[]).length){
-      container.innerHTML = '<div class="empty-hint">Sem descontos lançados.</div>';
-    }
-  }
-
-  function updateOrcamentoLiquida(data){
-    const box = document.getElementById('liquida-box');
-    if(!box) return;
-    const {liquida} = calcOrcamento(data.orcamento);
-    box.innerHTML = `<span class="lbl">Receita líquida</span><span class="val">R$ ${fmt(liquida)}</span>`;
-  }
-
-  // ---------- RECEITAS ----------
-  function buildReceitasCard(data){
+  // ---------- RECEITAS (Home apenas) ----------
+  function buildReceitasCard(person, data, liquidaBase){
     const card = document.createElement('div');
     card.className = 'card';
-    const head = document.createElement('div');
-    head.className = 'card-titulo';
-    head.innerHTML = `<span><span class="tag">2</span>Receitas</span><span class="head-total" id="receitas-total"></span>`;
-    card.appendChild(head);
-
-    const salRow = document.createElement('div');
-    salRow.className = 'linha';
-    salRow.innerHTML = `<span class="nome" style="opacity:.7;pointer-events:none;">Salário líquido (do Orçamento)</span><span class="valor" id="rec-salario" style="pointer-events:none;"></span>`;
-    card.appendChild(salRow);
-
+    const soma = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
+    const novaRenda = (Number(liquidaBase)||0) + soma;
+    card.innerHTML = `<div class="card-titulo"><span><span class="tag">2</span>Receitas extras (eventuais)</span></div>`;
     const list = document.createElement('div');
-    list.id = 'receitas-list';
+    renderListaSimples(list, data.receitas, null, ()=>{ persistAndRerender(); });
     card.appendChild(list);
-    renderReceitasList(list, data);
+    card.appendChild(addLineFor('+ Receita extra', (nome,valor)=>{
+      data.receitas.push({nome,valor}); persistAndRerender();
+    }));
+    const novaRendaBox = document.createElement('div');
+    novaRendaBox.className = 'liquida-box';
+    novaRendaBox.innerHTML = `<span class="lbl">Nova renda (líquida + extras)</span><span class="val">R$ ${fmt(novaRenda)}</span>`;
+    card.appendChild(novaRendaBox);
+    return card;
+  }
 
+  function renderListaSimples(container, arr, corValor, onChange){
+    container.innerHTML = '';
+    (arr||[]).forEach((item, i)=>{
+      const row = document.createElement('div');
+      row.className = 'linha';
+      const nameI = document.createElement('input');
+      nameI.className = 'nome'; nameI.value = item.nome;
+      nameI.oninput = ()=>{ item.nome = nameI.value; onChange(); };
+      const valI = makeMoneyInput(()=>item.valor, (v)=>{ item.valor = v; onChange(); }, 'valor');
+      if(corValor) valI.style.color = corValor;
+      const del = document.createElement('button');
+      del.className = 'del'; del.innerHTML = '✕';
+      del.onclick = ()=>{ arr.splice(i,1); renderListaSimples(container, arr, corValor, onChange); onChange(); };
+      row.appendChild(nameI); row.appendChild(valI); row.appendChild(del);
+      container.appendChild(row);
+    });
+    if(!(arr||[]).length){ container.innerHTML = '<div class="empty-hint">Nenhum item.</div>'; }
+  }
+
+  function addLineFor(label, onAdd){
     const addLine = document.createElement('div');
     addLine.className = 'add-linha';
-    addLine.innerHTML = `
-      <input class="f-nome" placeholder="Nova receita (ex: aluguel recebido)">
-      <input class="f-valor" type="number" step="0.01" placeholder="Valor">
-      <button class="btn-add">+ Receita</button>`;
+    addLine.innerHTML = `<input class="f-nome" placeholder="Nome"><input class="f-valor" type="number" step="0.01" placeholder="Valor"><button class="btn-add">${label}</button>`;
     const nameI = addLine.querySelector('.f-nome');
     const valI = addLine.querySelector('.f-valor');
     addLine.querySelector('.btn-add').onclick = ()=>{
       const nome = nameI.value.trim();
       const valor = parseFloat(valI.value)||0;
       if(!nome) return;
-      data.receitas.push({nome, valor});
+      onAdd(nome, valor);
       nameI.value=''; valI.value='';
-      renderReceitasList(list, data);
-      persistAndRerenderTotals();
     };
-    card.appendChild(addLine);
-    updateReceitasTotal(data);
-    return card;
-  }
-
-  function renderReceitasList(container, data){
-    container.innerHTML = '';
-    (data.receitas||[]).forEach((r,i)=>{
-      const row = document.createElement('div');
-      row.className = 'linha';
-      const nameI = document.createElement('input');
-      nameI.className='nome'; nameI.value=r.nome;
-      nameI.oninput = ()=>{ r.nome = nameI.value; persistAndRerenderTotals(); };
-      const valI = makeMoneyInput(
-        ()=>r.valor,
-        (v)=>{ r.valor = v; persistAndRerenderTotals(); },
-        'valor'
-      );
-      const del = document.createElement('button');
-      del.className='del'; del.innerHTML='✕';
-      del.onclick = ()=>{ data.receitas.splice(i,1); renderReceitasList(container,data); persistAndRerenderTotals(); };
-      row.appendChild(nameI); row.appendChild(valI); row.appendChild(del);
-      container.appendChild(row);
-    });
-  }
-
-  function updateReceitasTotal(data){
-    const salEl = document.getElementById('rec-salario');
-    const totEl = document.getElementById('receitas-total');
-    const {liquida} = calcOrcamento(data.orcamento);
-    if(salEl) salEl.textContent = 'R$ ' + fmt(liquida);
-    const outras = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
-    if(totEl) totEl.textContent = 'R$ ' + fmt(liquida + outras);
+    return addLine;
   }
 
   // ---------- DESPESAS ----------
   function buildDespesasCard(data){
     const card = document.createElement('div');
     card.className = 'card';
-    const head = document.createElement('div');
-    head.className = 'card-titulo';
-    head.innerHTML = `<span><span class="tag">3</span>Contas do mês</span><span class="head-total" id="despesas-total"></span>`;
-    card.appendChild(head);
+    const tagNum = state.person==='paulo' ? '4' : '3';
+    card.innerHTML = `<div class="card-titulo"><span><span class="tag">${tagNum}</span>Contas do mês</span></div>`;
 
     const list = document.createElement('div');
-    list.id = 'despesas-list';
-    card.appendChild(list);
     renderDespesasList(list, data);
+    card.appendChild(list);
 
     const addLine = document.createElement('div');
     addLine.className = 'add-linha';
     addLine.innerHTML = `
       <input class="f-dia" type="number" min="1" max="31" placeholder="Dia">
-      <input class="f-nome" placeholder="Nova conta (ex: internet)">
+      <input class="f-nome" placeholder="Nova conta">
       <input class="f-valor" type="number" step="0.01" placeholder="Valor">
+      <input class="f-parcelas" type="number" min="1" max="60" placeholder="Nº parcelas">
       <button class="btn-add">+ Conta</button>`;
     const dayI = addLine.querySelector('.f-dia');
     const nameI = addLine.querySelector('.f-nome');
     const valI = addLine.querySelector('.f-valor');
-    addLine.querySelector('.btn-add').onclick = ()=>{
+    const parcI = addLine.querySelector('.f-parcelas');
+    addLine.querySelector('.btn-add').onclick = async ()=>{
       const nome = nameI.value.trim();
       const valor = parseFloat(valI.value)||0;
       const dia = dayI.value ? parseInt(dayI.value) : null;
+      const parcelas = parcI.value ? Math.max(1, parseInt(parcI.value)) : 1;
       if(!nome) return;
       data.despesas.push({nome, valor, vencimento: dia, pago:false});
-      dayI.value=''; nameI.value=''; valI.value='';
-      renderDespesasList(list, data);
-      persistAndRerenderTotals();
+      persistAndRerender();
+      for(let i=1; i<parcelas; i++){
+        const alvo = nextYearMonth(state.year, state.month, i);
+        const futData = await loadData(state.person, alvo.year, alvo.month);
+        futData.despesas.push({nome, valor, vencimento: dia, pago:false});
+        saveData(state.person, alvo.year, alvo.month);
+      }
+      dayI.value=''; nameI.value=''; valI.value=''; parcI.value='';
     };
     card.appendChild(addLine);
-    updateDespesasTotal(data);
     return card;
   }
 
@@ -632,13 +654,15 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       const bv = b.vencimento==null ? 999 : b.vencimento;
       return av - bv;
     });
-    if(!items.length){
-      container.innerHTML = '<div class="empty-hint">Nenhuma conta lançada ainda.</div>';
-      return;
-    }
+    if(!items.length){ container.innerHTML = '<div class="empty-hint">Nenhuma conta lançada ainda.</div>'; return; }
     items.forEach(d=>{
       const row = document.createElement('div');
       row.className = 'despesa-linha' + (d.pago ? ' pago' : '');
+
+      const icone = document.createElement('span');
+      icone.className = 'icone-conta';
+      icone.textContent = getIconeConta(d.nome);
+      row.appendChild(icone);
 
       const day = document.createElement('div');
       day.className = 'dia' + (d.vencimento==null ? ' vazio':'');
@@ -647,12 +671,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
       const nameI = document.createElement('input');
       nameI.className='nome'; nameI.value=d.nome;
-      nameI.oninput = ()=>{ data.despesas[d._i].nome = nameI.value; persistAndRerenderTotals(); };
+      nameI.oninput = ()=>{ data.despesas[d._i].nome = nameI.value; persistAndRerender(); };
       row.appendChild(nameI);
 
       const valI = makeMoneyInput(
         ()=>data.despesas[d._i].valor,
-        (v)=>{ data.despesas[d._i].valor = v; persistAndRerenderTotals(); },
+        (v)=>{ data.despesas[d._i].valor = v; persistAndRerender(); },
         'valor'
       );
       row.appendChild(valI);
@@ -662,27 +686,17 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       stamp.textContent = d.pago ? '✓ PAGO' : 'PENDENTE';
       stamp.onclick = ()=>{
         data.despesas[d._i].pago = !data.despesas[d._i].pago;
-        stamp.classList.toggle('pago');
-        stamp.classList.toggle('pendente');
-        stamp.textContent = data.despesas[d._i].pago ? '✓ PAGO' : 'PENDENTE';
-        row.classList.toggle('pago', data.despesas[d._i].pago);
-        persistAndRerenderTotals();
+        persistAndRerender();
       };
       row.appendChild(stamp);
 
       const del = document.createElement('button');
       del.className='del'; del.innerHTML='✕';
-      del.onclick = ()=>{ data.despesas.splice(d._i,1); renderDespesasList(container,data); persistAndRerenderTotals(); };
+      del.onclick = ()=>{ data.despesas.splice(d._i,1); persistAndRerender(); };
       row.appendChild(del);
 
       container.appendChild(row);
     });
-  }
-
-  function updateDespesasTotal(data){
-    const el = document.getElementById('despesas-total');
-    const total = (data.despesas||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
-    if(el) el.textContent = 'R$ ' + fmt(total);
   }
 
   render();
