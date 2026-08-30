@@ -144,11 +144,16 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 {"JAN": null, "FEV": null, "MAR": 10176.34, "ABR": 10442.12, "MAI": 11041.54, "JUN": 11177.0, "JUL": 17311.75, "AGO": 11175.49, "SET": 11199.26, "OUT": 10176.34, "NOV": 10176.34, "DEZ": 11784.9}
 
 </script>
+<script id="emprestimos-seed" type="application/json">
+{"JAN": [1091.61, 2988.0, 2263.39], "FEV": [1091.61, 3093.38, 2368.39], "MAR": [1091.61, 136.51, 592.62], "ABR": [1091.61, 136.51, 592.62], "MAI": [1091.61, 136.51, 592.62], "JUN": [1091.61, 136.51, 592.62], "JUL": [1091.61, 136.51, 592.62], "AGO": [1091.61, 136.51, 592.62], "SET": [1091.61, 136.51, 592.62], "OUT": [1091.61, 136.51, 592.62], "NOV": [1091.61, 136.51, 592.62], "DEZ": [1091.61, 136.51, 592.62]}
+
+</script>
 
 <script>
 (function(){
   const SEED = JSON.parse(document.getElementById('seed-data').textContent);
   const CONTRACHEQUE_SEED = JSON.parse(document.getElementById('contracheque-seed').textContent);
+  const EMPRESTIMOS_SEED = JSON.parse(document.getElementById('emprestimos-seed').textContent);
   const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const YEARS = ['2024','2025','2026','2027'];
@@ -197,9 +202,9 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       return {
         receita_liquida: is2026 ? (CONTRACHEQUE_SEED[month] || 0) : 0,
         emprestimos: [
-          {nome:'Empréstimo Neca', valor:0},
-          {nome:'Empréstimo Paulo', valor:0},
-          {nome:'Meu Empréstimo', valor:0}
+          {nome:'Empréstimo Neca', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[0]) : 0},
+          {nome:'Empréstimo Paulo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[1]) : 0},
+          {nome:'Meu Empréstimo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[2]) : 0}
         ],
         receitas: [],
         despesas: is2026 ? (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : []
@@ -477,7 +482,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
     const brutaRow = document.createElement('div');
     brutaRow.className = 'bruta-linha';
-    brutaRow.innerHTML = `<label>Receita bruta</label>`;
+    brutaRow.innerHTML = `<label>Remuneração PGM</label>`;
     const brutaInput = makeMoneyInput(
       ()=>data.receita_bruta,
       (v)=>{ data.receita_bruta = v; persistAndRerender(); },
