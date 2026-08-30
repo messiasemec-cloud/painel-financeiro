@@ -313,7 +313,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   function calcRemuneracoes(pauloData, homeData){
     const { receitaBruta } = calcPauloOrcamento(pauloData);
     const terco = receitaBruta / 3;
-    const fj = getFunerariaJazigo(homeData);
+    const fj = getFunerariaJazigo(homeData) / 3;
     const empNeca = (pauloData.emprestimos[0] && pauloData.emprestimos[0].valor) || 0;
     const empMeu = (pauloData.emprestimos[2] && pauloData.emprestimos[2].valor) || 0;
     const neca = terco - empNeca - fj;
@@ -486,8 +486,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       <div class="card-titulo"><span><span class="tag">2</span>Remunerações</span></div>
       <div class="linha"><span class="nome" style="pointer-events:none;">EMSB</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.emsb)}</span></div>
       <div class="linha"><span class="nome" style="pointer-events:none;">NECA</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.neca)}</span></div>
-      <div class="total-line"><span>Total remunerações</span><span>R$ ${fmt(r.total)}</span></div>
-      <div class="empty-hint" style="margin-top:6px;">Base: receita bruta ÷ 3 = R$ ${fmt(r.terco)} · Funerária + Jazigo do mês (Minhas Contas): R$ ${fmt(r.fj)}</div>
+      <div class="empty-hint" style="margin-top:6px;">Base: receita bruta ÷ 3 = R$ ${fmt(r.terco)} · (Funerária + Jazigo do mês) ÷ 3: R$ ${fmt(r.fj)}</div>
     `;
     return card;
   }
