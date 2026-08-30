@@ -329,9 +329,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     return { terco, fj, neca, emsb, receitaLiquida };
   }
 
+  function getEmprestimoHome(homeData){
+    return (homeData.descontos||[]).filter(d=>/empr[ée]stimo/i.test(d.nome||'')).reduce((s,d)=>s+(Number(d.valor)||0),0);
+  }
+
   function calcHomeOrcamento(homeData, pauloData){
     const bruta = Number(homeData.receita_bruta)||0;
-    const pensaoAuto = calcRemuneracoes(pauloData, homeData).emsb;
+    const pensaoAuto = calcRemuneracoes(pauloData, homeData).emsb + getEmprestimoHome(homeData);
     const extraManual = (homeData.receitas_extra_manual||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
     const descTotal = (homeData.descontos||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
     const liquida = bruta + pensaoAuto + extraManual - descTotal;
@@ -519,7 +523,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
     const pensaoRow = document.createElement('div');
     pensaoRow.className = 'linha';
-    pensaoRow.innerHTML = `<span class="nome" style="opacity:.75;pointer-events:none;">Receita bruta pensão (EMSB do Paulo)</span><span class="valor" style="pointer-events:none;color:var(--verde-escuro);">R$ ${fmt(o.pensaoAuto)}</span>`;
+    pensaoRow.innerHTML = `<span class="nome" style="opacity:.75;pointer-events:none;">Receita bruta pensão (EMSB + empréstimo)</span><span class="valor" style="pointer-events:none;color:var(--verde-escuro);">R$ ${fmt(o.pensaoAuto)}</span>`;
     card.appendChild(pensaoRow);
 
     const extraLabel = document.createElement('div');
