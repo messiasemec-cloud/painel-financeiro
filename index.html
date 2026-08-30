@@ -200,7 +200,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     const is2026 = (year === '2026');
     if(person === 'paulo'){
       return {
-        receita_liquida: is2026 ? (CONTRACHEQUE_SEED[month] || 0) : 0,
+        contracheque: is2026 ? (CONTRACHEQUE_SEED[month] || 0) : 0,
         emprestimos: [
           {nome:'Empréstimo Neca', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[0]) : 0},
           {nome:'Empréstimo Paulo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[1]) : 0},
@@ -263,6 +263,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       saveData(person, year, month);
       return dado;
     }
+    // Migração pontual: renomeia campo antigo receita_liquida -> contracheque
+    let migrado = false;
+    if(person === 'paulo' && dado.contracheque === undefined && dado.receita_liquida !== undefined){
+      dado.contracheque = dado.receita_liquida;
+      delete dado.receita_liquida;
+      migrado = true;
+    }
     // Migração pontual: preenche empréstimos do Paulo se ainda estiverem zerados
     if(person === 'paulo' && year === '2026' && dado.emprestimos && !dado._emp_seed_aplicado){
       const somaAtual = dado.emprestimos.reduce((s,e)=>s+(Number(e.valor)||0),0);
@@ -273,11 +280,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         dado.emprestimos[2].valor = seedVals[2];
       }
       dado._emp_seed_aplicado = true;
-      cache[key] = dado;
-      saveData(person, year, month);
-      return dado;
+      migrado = true;
     }
     cache[key] = dado;
+    if(migrado) saveData(person, year, month);
     return dado;
   }
 
@@ -298,9 +304,9 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   // ---------- Cálculos ----------
   function calcPauloOrcamento(pauloData){
     const soma = (pauloData.emprestimos||[]).reduce((s,e)=>s+(Number(e.valor)||0),0);
-    const receitaLiquida = Number(pauloData.receita_liquida)||0;
-    const receitaBruta = receitaLiquida + soma;
-    return { receitaLiquida, somaEmprestimos: soma, receitaBruta };
+    const contracheque = Number(pauloData.contracheque)||0;
+    const receitaBruta = contracheque + soma;
+    return { contracheque, somaEmprestimos: soma, receitaBruta };
   }
 
   function getFunerariaJazigo(homeData){
@@ -315,10 +321,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     const terco = receitaBruta / 3;
     const fj = getFunerariaJazigo(homeData) / 3;
     const empNeca = (pauloData.emprestimos[0] && pauloData.emprestimos[0].valor) || 0;
+    const empPaulo = (pauloData.emprestimos[1] && pauloData.emprestimos[1].valor) || 0;
     const empMeu = (pauloData.emprestimos[2] && pauloData.emprestimos[2].valor) || 0;
     const neca = terco - empNeca - fj;
     const emsb = terco - empMeu - fj;
-    return { terco, fj, neca, emsb, total: neca + emsb };
+    const receitaLiquida = terco - empPaulo - fj;
+    return { terco, fj, neca, emsb, receitaLiquida };
   }
 
   function calcHomeOrcamento(homeData, pauloData){
@@ -333,9 +341,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   function calcTotals(person, data, otherData){
     let totalReceitas;
     if(person === 'paulo'){
-      const { receitaLiquida } = calcPauloOrcamento(data);
-      const outras = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
-      totalReceitas = receitaLiquida + outras;
+      const { receitaLiquida } = calcRemuneracoes(data, otherData);
+      totalReceitas = receitaLiquida;
     } else {
       const { liquida } = calcHomeOrcamento(data, otherData);
       const outras = (data.receitas||[]).reduce((s,r)=>s+(Number(r.valor)||0),0);
@@ -382,7 +389,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     content.innerHTML = '';
     content.appendChild(buildSummary(state.person, data, other));
     if(state.person === 'paulo'){
-      content.appendChild(buildOrcamentoPaulo(pauloData));
+      content.appendChild(buildOrcamentoPaulo(pauloData, homeData));
       content.appendChild(buildRemuneracoesCard(pauloData, homeData));
     } else {
       content.appendChild(buildOrcamentoHome(homeData, pauloData));
@@ -422,24 +429,25 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   }
 
   // ---------- ORÇAMENTO PAULO ----------
-  function buildOrcamentoPaulo(data){
+  function buildOrcamentoPaulo(data, homeData){
     const card = document.createElement('div');
     card.className = 'card';
-    const { receitaLiquida, somaEmprestimos, receitaBruta } = calcPauloOrcamento(data);
+    const { receitaBruta } = calcPauloOrcamento(data);
+    const { receitaLiquida } = calcRemuneracoes(data, homeData);
 
     card.innerHTML = `<div class="card-titulo"><span><span class="tag">1</span>Orçamento</span></div>`;
 
     const brutaBox = document.createElement('div');
     brutaBox.className = 'liquida-box';
-    brutaBox.innerHTML = `<span class="lbl">Receita bruta (calculada)</span><span class="val">R$ ${fmt(receitaBruta)}</span>`;
+    brutaBox.innerHTML = `<span class="lbl">Receita bruta</span><span class="val">R$ ${fmt(receitaBruta)}</span>`;
     card.appendChild(brutaBox);
 
     const liqRow = document.createElement('div');
     liqRow.className = 'bruta-linha';
-    liqRow.innerHTML = `<label>Receita líquida (contracheque)</label>`;
+    liqRow.innerHTML = `<label>Contracheque</label>`;
     const liqInput = makeMoneyInput(
-      ()=>data.receita_liquida,
-      (v)=>{ data.receita_liquida = v; persistAndRerender(); },
+      ()=>data.contracheque,
+      (v)=>{ data.contracheque = v; persistAndRerender(); },
       ''
     );
     liqRow.appendChild(liqInput);
@@ -469,10 +477,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     });
     card.appendChild(list);
 
-    const totalLine = document.createElement('div');
-    totalLine.className = 'total-line';
-    totalLine.innerHTML = `<span>Total do orçamento</span><span>R$ ${fmt(receitaBruta)}</span>`;
-    card.appendChild(totalLine);
+    const liquidaBox = document.createElement('div');
+    liquidaBox.className = 'liquida-box';
+    liquidaBox.innerHTML = `<span class="lbl">Receita líquida</span><span class="val">R$ ${fmt(receitaLiquida)}</span>`;
+    card.appendChild(liquidaBox);
 
     return card;
   }
@@ -486,7 +494,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       <div class="card-titulo"><span><span class="tag">2</span>Remunerações</span></div>
       <div class="linha"><span class="nome" style="pointer-events:none;">EMSB</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.emsb)}</span></div>
       <div class="linha"><span class="nome" style="pointer-events:none;">NECA</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.neca)}</span></div>
-      <div class="empty-hint" style="margin-top:6px;">Base: receita bruta ÷ 3 = R$ ${fmt(r.terco)} · (Funerária + Jazigo do mês) ÷ 3: R$ ${fmt(r.fj)}</div>
+      <div class="empty-hint" style="margin-top:6px;">Base: receita líquida ÷ 3 = R$ ${fmt(r.terco)} · (Funerária + Jazigo do mês) ÷ 3: R$ ${fmt(r.fj)}</div>
     `;
     return card;
   }
