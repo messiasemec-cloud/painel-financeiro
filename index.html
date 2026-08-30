@@ -82,6 +82,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .copiar-mes{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;padding-top:10px;border-top:1px dashed var(--cinza-borda)}
 .copiar-label{font-size:12.5px;color:var(--texto-sec);font-weight:600}
 .copiar-mes .select-data{padding:5px 8px;font-size:12.5px}
+.emprestimo-linha{flex-wrap:wrap}
+.parcela-inputs{display:flex;align-items:center;gap:2px;font-size:12px;color:var(--texto-sec);flex-shrink:0}
+.parcela-num{width:36px;text-align:center;font-family:'Source Serif 4',serif;font-size:12px;border:1px solid var(--cinza-borda);border-radius:4px;padding:3px 2px}
+.parcela-num:focus{outline:none;border-color:var(--verde)}
 
 .card{background:var(--branco);border-radius:var(--radius-lg);border:1px solid var(--cinza-borda);padding:1.3rem 1.3rem 1.1rem;margin-bottom:1rem}
 .card-titulo{font-size:14px;font-weight:600;color:var(--texto);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
@@ -251,11 +255,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       if(dado && ((Number(dado.contracheque)||0) > 0 || (dado.emprestimos||[]).some(e=>(Number(e.valor)||0)>0))){
         return {
           contracheque: Number(dado.contracheque)||0,
-          emprestimos: [
-            (dado.emprestimos&&dado.emprestimos[0])?Number(dado.emprestimos[0].valor)||0:0,
-            (dado.emprestimos&&dado.emprestimos[1])?Number(dado.emprestimos[1].valor)||0:0,
-            (dado.emprestimos&&dado.emprestimos[2])?Number(dado.emprestimos[2].valor)||0:0
-          ],
+          emprestimos: (dado.emprestimos||[]).map(e=>({
+            nome: e.nome, valor: Number(e.valor)||0,
+            parcelaAtual: e.parcelaAtual || null, parcelaTotal: e.parcelaTotal || null
+          })),
           ajuste: Number(dado.ajuste)||0
         };
       }
@@ -289,9 +292,9 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         return {
           contracheque: CONTRACHEQUE_SEED[month] || 0,
           emprestimos: [
-            {nome:'Empréstimo Neca', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[0]},
-            {nome:'Empréstimo Paulo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[1]},
-            {nome:'Meu Empréstimo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[2]}
+            {nome:'Empréstimo Neca', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[0], parcelaAtual:null, parcelaTotal:null},
+            {nome:'Empréstimo Paulo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[1], parcelaAtual:null, parcelaTotal:null},
+            {nome:'Meu Empréstimo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[2], parcelaAtual:null, parcelaTotal:null}
           ],
           ajuste: AJUSTE_SEED[month] || 0,
           receitas: [],
@@ -300,13 +303,15 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         };
       }
       const anterior = await buscarPauloAnterior(year, month);
+      const empBase = [
+        {nome:'Empréstimo Neca'}, {nome:'Empréstimo Paulo'}, {nome:'Meu Empréstimo'}
+      ];
+      const emprestimos = anterior && anterior.emprestimos.length
+        ? anterior.emprestimos.map(e=>({nome:e.nome, valor:e.valor, parcelaAtual:e.parcelaAtual, parcelaTotal:e.parcelaTotal}))
+        : empBase.map(e=>({nome:e.nome, valor:0, parcelaAtual:null, parcelaTotal:null}));
       return {
         contracheque: anterior ? anterior.contracheque : 0,
-        emprestimos: [
-          {nome:'Empréstimo Neca', valor: anterior ? anterior.emprestimos[0] : 0},
-          {nome:'Empréstimo Paulo', valor: anterior ? anterior.emprestimos[1] : 0},
-          {nome:'Meu Empréstimo', valor: anterior ? anterior.emprestimos[2] : 0}
-        ],
+        emprestimos,
         ajuste: anterior ? anterior.ajuste : 0,
         receitas: [],
         despesas: [],
@@ -402,6 +407,14 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     }
     if(person === 'home' && dado._fixadoHome === undefined){
       dado._fixadoHome = { receita_bruta: year === '2026' };
+      migrado = true;
+    }
+    if(person === 'paulo' && dado.emprestimos && dado.emprestimos.some(e=>e.parcelaAtual === undefined)){
+      dado.emprestimos.forEach(e=>{
+        if(e.parcelaAtual === undefined) e.parcelaAtual = null;
+        if(e.parcelaTotal === undefined) e.parcelaTotal = null;
+        if(e.finalizado === undefined) e.finalizado = false;
+      });
       migrado = true;
     }
     cache[key] = dado;
@@ -639,17 +652,142 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   }
 
   async function propagarPauloValor(campo, indice, valorNovo){
+    if(campo === 'emprestimo'){
+      // tratado por propagarEmprestimo, mantido aqui só por segurança
+      return propagarEmprestimo(indice, valorNovo, null, null);
+    }
     let cursor = { year: state.year, month: state.month };
     for(let i=1; i<=60; i++){
       cursor = nextYearMonth(cursor.year, cursor.month, 1);
       const futData = await loadData('paulo', cursor.year, cursor.month);
       futData._fixado = futData._fixado || {contracheque:false, emp0:false, emp1:false, emp2:false};
-      const fieldKey = campo === 'contracheque' ? 'contracheque' : ('emp'+indice);
-      if(futData._fixado[fieldKey]) break;
-      if(campo === 'contracheque') futData.contracheque = valorNovo;
-      else futData.emprestimos[indice].valor = valorNovo;
+      if(futData._fixado.contracheque) break;
+      futData.contracheque = valorNovo;
       saveData('paulo', cursor.year, cursor.month);
     }
+  }
+
+  async function removerEmprestimoHomeCorrespondente(year, month){
+    const homeData = await loadData('home', year, month);
+    const antes = homeData.descontos.length;
+    homeData.descontos = homeData.descontos.filter(d=>!/empr[ée]stimo/i.test(d.nome||''));
+    if(homeData.descontos.length !== antes){
+      saveData('home', year, month);
+    }
+  }
+
+  async function propagarEmprestimo(idx, valorNovo, parcelaAtualNovo, parcelaTotalNovo){
+    let cursor = { year: state.year, month: state.month };
+    let parcelaCursor = parcelaAtualNovo;
+    for(let i=1; i<=60; i++){
+      cursor = nextYearMonth(cursor.year, cursor.month, 1);
+      const futData = await loadData('paulo', cursor.year, cursor.month);
+      futData._fixado = futData._fixado || {};
+      const fieldKey = 'emp'+idx;
+      if(futData._fixado[fieldKey]) break;
+      futData.emprestimos = futData.emprestimos || [];
+      if(!futData.emprestimos[idx]){
+        futData.emprestimos[idx] = {nome:'', valor:0, parcelaAtual:null, parcelaTotal:null};
+      }
+      if(parcelaTotalNovo){
+        parcelaCursor = parcelaCursor + 1;
+        if(parcelaCursor > parcelaTotalNovo){
+          futData.emprestimos[idx].valor = 0;
+          futData.emprestimos[idx].parcelaAtual = null;
+          futData.emprestimos[idx].parcelaTotal = null;
+          futData.emprestimos[idx].finalizado = true;
+          saveData('paulo', cursor.year, cursor.month);
+          if(idx === 2){
+            await removerEmprestimoHomeCorrespondente(cursor.year, cursor.month);
+          }
+          break;
+        }
+        futData.emprestimos[idx].valor = valorNovo;
+        futData.emprestimos[idx].parcelaAtual = parcelaCursor;
+        futData.emprestimos[idx].parcelaTotal = parcelaTotalNovo;
+        futData.emprestimos[idx].finalizado = false;
+      } else {
+        futData.emprestimos[idx].valor = valorNovo;
+        futData.emprestimos[idx].parcelaAtual = null;
+        futData.emprestimos[idx].parcelaTotal = null;
+        futData.emprestimos[idx].finalizado = false;
+      }
+      saveData('paulo', cursor.year, cursor.month);
+    }
+  }
+
+  function renderEmprestimoRow(e, idx, data){
+    const row = document.createElement('div');
+    row.className = 'linha emprestimo-linha';
+
+    let nome;
+    if(idx < 3){
+      nome = document.createElement('span');
+      nome.className = 'nome';
+      nome.style.pointerEvents = 'none';
+      nome.style.opacity = '.85';
+      nome.textContent = e.nome;
+    } else {
+      nome = document.createElement('input');
+      nome.className = 'nome'; nome.value = e.nome;
+      nome.oninput = ()=>{ e.nome = nome.value; persistOnly(); };
+      nome.onblur = ()=>{ render(); };
+    }
+    row.appendChild(nome);
+
+    const valI = makeMoneyInput(
+      ()=>e.valor,
+      (v)=>{
+        e.valor = v;
+        data._fixado = data._fixado || {};
+        data._fixado['emp'+idx] = true;
+        persistAndRerender();
+        propagarEmprestimo(idx, v, e.parcelaAtual, e.parcelaTotal);
+      },
+      'valor'
+    );
+    row.appendChild(valI);
+
+    const parcelaWrap = document.createElement('span');
+    parcelaWrap.className = 'parcela-inputs';
+    const atualI = document.createElement('input');
+    atualI.type='number'; atualI.min='1'; atualI.className='parcela-num'; atualI.placeholder='nº';
+    atualI.value = e.parcelaAtual || '';
+    const totalI = document.createElement('input');
+    totalI.type='number'; totalI.min='1'; totalI.className='parcela-num'; totalI.placeholder='de';
+    totalI.value = e.parcelaTotal || '';
+    const commitParcela = ()=>{
+      const atual = atualI.value ? parseInt(atualI.value) : null;
+      const total = totalI.value ? parseInt(totalI.value) : null;
+      if(total && atual && atual > total){
+        e.valor = 0; e.parcelaAtual = null; e.parcelaTotal = null; e.finalizado = true;
+        data._fixado = data._fixado || {};
+        data._fixado['emp'+idx] = true;
+        persistAndRerender();
+        propagarEmprestimo(idx, e.valor, atual, total);
+        if(idx === 2) removerEmprestimoHomeCorrespondente(state.year, state.month);
+        return;
+      }
+      e.parcelaAtual = atual; e.parcelaTotal = total; e.finalizado = false;
+      data._fixado = data._fixado || {};
+      data._fixado['emp'+idx] = true;
+      persistAndRerender();
+      propagarEmprestimo(idx, e.valor, atual, total);
+    };
+    atualI.onchange = commitParcela;
+    totalI.onchange = commitParcela;
+    parcelaWrap.appendChild(atualI);
+    parcelaWrap.appendChild(document.createTextNode('/'));
+    parcelaWrap.appendChild(totalI);
+    row.appendChild(parcelaWrap);
+
+    if(idx >= 3){
+      const del = document.createElement('button');
+      del.className = 'del'; del.innerHTML = '✕';
+      del.onclick = ()=>{ data.emprestimos.splice(idx,1); persistAndRerender(); };
+      row.appendChild(del);
+    }
+    return row;
   }
 
   // ---------- ORÇAMENTO PAULO ----------
@@ -690,28 +828,26 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
     const list = document.createElement('div');
     (data.emprestimos||[]).forEach((e, idx)=>{
-      const row = document.createElement('div');
-      row.className = 'linha';
-      const nome = document.createElement('span');
-      nome.className = 'nome';
-      nome.style.pointerEvents = 'none';
-      nome.style.opacity = '.85';
-      nome.textContent = e.nome;
-      const valI = makeMoneyInput(
-        ()=>e.valor,
-        (v)=>{
-          e.valor = v;
-          data._fixado = data._fixado || {};
-          data._fixado['emp'+idx] = true;
-          persistAndRerender();
-          propagarPauloValor('emprestimo', idx, v);
-        },
-        'valor'
-      );
-      row.appendChild(nome); row.appendChild(valI);
-      list.appendChild(row);
+      const finalizadoSemUso = e.finalizado && (Number(e.valor)||0) === 0;
+      if(finalizadoSemUso) return;
+      list.appendChild(renderEmprestimoRow(e, idx, data));
     });
     card.appendChild(list);
+
+    const addEmpLine = document.createElement('div');
+    addEmpLine.className = 'add-linha';
+    addEmpLine.innerHTML = `<input class="f-nome" placeholder="Nome do novo empréstimo"><input class="f-valor" type="number" step="0.01" placeholder="Valor"><button class="btn-add">+ Empréstimo</button>`;
+    const enameI = addEmpLine.querySelector('.f-nome');
+    const evalI = addEmpLine.querySelector('.f-valor');
+    addEmpLine.querySelector('.btn-add').onclick = ()=>{
+      const nome = enameI.value.trim();
+      const valor = parseFloat(evalI.value)||0;
+      if(!nome) return;
+      data.emprestimos.push({nome, valor, parcelaAtual:null, parcelaTotal:null});
+      enameI.value=''; evalI.value='';
+      persistAndRerender();
+    };
+    card.appendChild(addEmpLine);
 
     const liquidaBox = document.createElement('div');
     liquidaBox.className = 'liquida-box';
