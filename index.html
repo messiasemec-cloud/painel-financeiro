@@ -428,6 +428,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     content.appendChild(buildDespesasCard(data));
   }
 
+  function persistOnly(){
+    saveData(state.person, state.year, state.month);
+  }
+
   function persistAndRerender(){
     saveData(state.person, state.year, state.month);
     render();
@@ -657,7 +661,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       row.className = 'linha';
       const nameI = document.createElement('input');
       nameI.className = 'nome'; nameI.value = item.nome;
-      nameI.oninput = ()=>{ item.nome = nameI.value; onChange(); };
+      nameI.oninput = ()=>{ item.nome = nameI.value; persistOnly(); };
       const valI = makeMoneyInput(()=>item.valor, (v)=>{ item.valor = v; onChange(); }, 'valor');
       if(corValor) valI.style.color = corValor;
       const del = document.createElement('button');
@@ -796,7 +800,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
       const nameI = document.createElement('input');
       nameI.className='nome'; nameI.value=d.nome;
-      nameI.oninput = ()=>{ data.despesas[d._i].nome = nameI.value; persistAndRerender(); };
+      nameI.oninput = ()=>{ data.despesas[d._i].nome = nameI.value; persistOnly(); };
+      nameI.onblur = ()=>{ render(); };
       row.appendChild(nameI);
 
       if(d.parcelaTotal && d.parcelaTotal > 1){
