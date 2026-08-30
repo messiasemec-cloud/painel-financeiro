@@ -88,6 +88,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .liquida-box{margin-top:10px;background:var(--verde-bg);border:1px solid #bfe3d9;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
 .liquida-box .lbl{font-size:12.5px;color:var(--verde-escuro);font-weight:600}
 .liquida-box .val{font-family:'Source Serif 4',serif;font-weight:700;font-size:18px;color:var(--verde-escuro)}
+.liquida-box.vermelha{background:var(--vermelho-bg);border-color:#f0c4bd}
+.liquida-box.vermelha .lbl,.liquida-box.vermelha .val{color:var(--vermelho)}
 
 .despesa-linha{display:flex;align-items:center;gap:10px;padding:7px 8px;border-bottom:1px solid var(--cinza-borda);border-radius:6px;transition:background .15s ease}
 .despesa-linha.pago{background:#eef8f4}
@@ -545,17 +547,6 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     pensaoRow.innerHTML = `<span class="nome" style="opacity:.75;pointer-events:none;">Receita bruta pensão (EMSB + empréstimo)</span><span class="valor" style="pointer-events:none;color:var(--verde-escuro);">R$ ${fmt(o.pensaoAuto)}</span>`;
     card.appendChild(pensaoRow);
 
-    const extraLabel = document.createElement('div');
-    extraLabel.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--verde-escuro);text-transform:uppercase;letter-spacing:.03em;margin:10px 0 2px;';
-    extraLabel.textContent = 'Outras receitas adicionais (somam)';
-    card.appendChild(extraLabel);
-    const extraList = document.createElement('div');
-    renderListaSimples(extraList, data.receitas_extra_manual, 'var(--verde-escuro)', ()=>{ persistAndRerender(); });
-    card.appendChild(extraList);
-    card.appendChild(addLineFor('+ Receita extra', (nome,valor)=>{
-      data.receitas_extra_manual.push({nome,valor}); persistAndRerender();
-    }));
-
     const descLabel = document.createElement('div');
     descLabel.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--vermelho);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 2px;';
     descLabel.textContent = 'Descontos (subtraem)';
@@ -697,6 +688,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       dayI.value=''; nameI.value=''; valI.value=''; parcI.value='';
     };
     card.appendChild(addLine);
+
+    const totalLine = document.createElement('div');
+    totalLine.className = 'liquida-box vermelha';
+    const totalContas = (data.despesas||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
+    totalLine.innerHTML = `<span class="lbl">Total do mês</span><span class="val">R$ ${fmt(totalContas)}</span>`;
+    card.appendChild(totalLine);
+
     return card;
   }
 
