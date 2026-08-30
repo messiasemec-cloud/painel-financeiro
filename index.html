@@ -45,6 +45,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .seletor-data{display:flex;gap:8px}
 .select-data{font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:600;color:var(--texto);background:var(--branco);border:1.5px solid var(--cinza-borda);border-radius:8px;padding:7px 10px;cursor:pointer}
 .select-data:focus{outline:none;border-color:var(--verde)}
+.topo-direita{display:flex;align-items:center;gap:10px}
+.btn-undo{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--cinza-borda);background:var(--branco);color:var(--texto-sec);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-undo:hover:not(:disabled){border-color:var(--verde);color:var(--verde)}
+.btn-undo:disabled{opacity:.3;cursor:default}
 
 .scorecards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
 .scorecard{background:var(--branco);border-radius:var(--radius-lg);border:1px solid var(--cinza-borda);padding:1.1rem 1rem;text-align:center}
@@ -59,6 +63,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .status-banner{border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;font-size:14px;font-weight:700;text-align:center;border:1.5px solid}
 .status-banner.ok{background:var(--verde-bg);border-color:#bfe3d9;color:var(--verde-escuro)}
 .status-banner.pendente{background:#fff4e8;border-color:#f5cfa0;color:#a8620c}
+.status-banner.atrasada{background:#fdeeec;border-color:#f0b3aa;color:var(--vermelho)}
 .status-banner.neutro{background:var(--cinza-bg);border-color:var(--cinza-borda);color:var(--texto-sec);font-weight:600}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(20,24,28,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
@@ -156,9 +161,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 <div class="container">
   <div class="painel-topo">
     <div class="painel-titulo" id="mesTitulo">—</div>
-    <div class="seletor-data">
-      <select class="select-data" id="anoSelect"></select>
-      <select class="select-data" id="mesSelect"></select>
+    <div class="topo-direita">
+      <button id="btnDesfazer" class="btn-undo" title="Desfazer última edição">↶</button>
+      <button id="btnRefazer" class="btn-undo" title="Refazer">↷</button>
+      <div class="seletor-data">
+        <select class="select-data" id="anoSelect"></select>
+        <select class="select-data" id="mesSelect"></select>
+      </div>
     </div>
   </div>
   <div id="content"></div>
@@ -254,6 +263,24 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     return null;
   }
 
+  async function buscarHomeAnterior(year, month){
+    for(let i=1;i<=36;i++){
+      const alvo = nextYearMonth(year, month, -i);
+      const key = storageKey('home', alvo.year, alvo.month);
+      let dado = cache[key];
+      if(!dado){
+        try{
+          const res = await storageGet(key);
+          if(res && res.value) dado = JSON.parse(res.value);
+        }catch(e){}
+      }
+      if(dado && (Number(dado.receita_bruta)||0) > 0){
+        return Number(dado.receita_bruta)||0;
+      }
+    }
+    return null;
+  }
+
   async function defaultDataFor(person, year, month){
     const is2026 = (year === '2026');
     if(person === 'paulo'){
@@ -268,7 +295,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
           ],
           ajuste: AJUSTE_SEED[month] || 0,
           receitas: [],
-          despesas: (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false}))
+          despesas: (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})),
+          _fixado: {contracheque:true, emp0:true, emp1:true, emp2:true}
         };
       }
       const anterior = await buscarPauloAnterior(year, month);
@@ -281,15 +309,18 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         ],
         ajuste: anterior ? anterior.ajuste : 0,
         receitas: [],
-        despesas: []
+        despesas: [],
+        _fixado: {contracheque:false, emp0:false, emp1:false, emp2:false}
       };
     }
+    const receitaBrutaHome = is2026 ? (SEED.home_receita_bruta[month]||0) : (await buscarHomeAnterior(year, month) || 0);
     return {
-      receita_bruta: is2026 ? (SEED.home_receita_bruta[month]||0) : 0,
+      receita_bruta: receitaBrutaHome,
       descontos: is2026 ? (SEED.home_descontos[month]||[]).map(d=>({nome:d.nome, valor:d.valor})) : [],
       receitas_extra_manual: is2026 ? (SEED.home_receitas_extra[month]||[]).map(d=>({nome:d.nome, valor:d.valor})) : [],
       receitas: is2026 ? (SEED.home_receitas[month]||[]).map(r=>({nome:r.nome, valor:r.valor})) : [],
-      despesas: is2026 ? (SEED.home_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : []
+      despesas: is2026 ? (SEED.home_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : [],
+      _fixadoHome: {receita_bruta: is2026}
     };
   }
 
@@ -359,6 +390,18 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     // Migração pontual: adiciona campo ajuste se não existir
     if(person === 'paulo' && year === '2026' && dado.ajuste === undefined){
       dado.ajuste = AJUSTE_SEED[month] || 0;
+      migrado = true;
+    }
+    // Migração pontual: adiciona trava _fixado se não existir
+    if(person === 'paulo' && dado._fixado === undefined){
+      const temSeedHistorico = year === '2026' && CONTRACHEQUE_SEED[month];
+      dado._fixado = temSeedHistorico
+        ? {contracheque:true, emp0:true, emp1:true, emp2:true}
+        : {contracheque:false, emp0:false, emp1:false, emp2:false};
+      migrado = true;
+    }
+    if(person === 'home' && dado._fixadoHome === undefined){
+      dado._fixadoHome = { receita_bruta: year === '2026' };
       migrado = true;
     }
     cache[key] = dado;
@@ -452,6 +495,11 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     document.getElementById('mesTitulo').textContent = MONTH_LABELS[MONTHS.indexOf(state.month)] + ' / ' + state.year;
   }
 
+  let undoStack = [];
+  let redoStack = [];
+  let lastSnapshot = null;
+  let lastSnapshotCtx = null;
+
   async function render(){
     renderTabs();
     renderSeletorData();
@@ -474,6 +522,17 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       content.appendChild(buildReceitasCard('home', homeData, liquida));
     }
     content.appendChild(buildDespesasCard(data));
+
+    lastSnapshotCtx = {person: state.person, year: state.year, month: state.month};
+    lastSnapshot = JSON.stringify(data);
+    atualizarBotoesUndo();
+  }
+
+  function atualizarBotoesUndo(){
+    const bU = document.getElementById('btnDesfazer');
+    const bR = document.getElementById('btnRefazer');
+    if(bU) bU.disabled = undoStack.length === 0;
+    if(bR) bR.disabled = redoStack.length === 0;
   }
 
   function persistOnly(){
@@ -481,9 +540,45 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   }
 
   function persistAndRerender(){
+    const key = storageKey(state.person, state.year, state.month);
+    const atualStr = JSON.stringify(cache[key]);
+    if(lastSnapshotCtx && lastSnapshotCtx.person===state.person && lastSnapshotCtx.year===state.year && lastSnapshotCtx.month===state.month && lastSnapshot !== null && lastSnapshot !== atualStr){
+      undoStack.push({person: state.person, year: state.year, month: state.month, snapshot: lastSnapshot});
+      if(undoStack.length > 30) undoStack.shift();
+      redoStack = [];
+    }
     saveData(state.person, state.year, state.month);
     render();
   }
+
+  async function desfazer(){
+    if(!undoStack.length) return;
+    const entry = undoStack.pop();
+    const key = storageKey(entry.person, entry.year, entry.month);
+    const atual = cache[key] ? JSON.stringify(cache[key]) : JSON.stringify(await loadData(entry.person, entry.year, entry.month));
+    redoStack.push({person: entry.person, year: entry.year, month: entry.month, snapshot: atual});
+    if(redoStack.length > 30) redoStack.shift();
+    cache[key] = JSON.parse(entry.snapshot);
+    saveData(entry.person, entry.year, entry.month);
+    state.person = entry.person; state.year = entry.year; state.month = entry.month;
+    render();
+  }
+
+  async function refazer(){
+    if(!redoStack.length) return;
+    const entry = redoStack.pop();
+    const key = storageKey(entry.person, entry.year, entry.month);
+    const atual = cache[key] ? JSON.stringify(cache[key]) : JSON.stringify(await loadData(entry.person, entry.year, entry.month));
+    undoStack.push({person: entry.person, year: entry.year, month: entry.month, snapshot: atual});
+    if(undoStack.length > 30) undoStack.shift();
+    cache[key] = JSON.parse(entry.snapshot);
+    saveData(entry.person, entry.year, entry.month);
+    state.person = entry.person; state.year = entry.year; state.month = entry.month;
+    render();
+  }
+
+  document.getElementById('btnDesfazer').onclick = desfazer;
+  document.getElementById('btnRefazer').onclick = refazer;
 
   // ---------- SUMMARY ----------
   function buildSummary(person, data, other){
@@ -514,26 +609,43 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     const div = document.createElement('div');
     const despesas = data.despesas || [];
     const pendentes = despesas.filter(d=>!d.pago).length;
+    const atrasadas = despesas.filter(d=>isAtrasada(d)).length;
     if(despesas.length === 0){
       div.className = 'status-banner neutro';
       div.textContent = 'Nenhuma conta lançada neste mês ainda.';
+    } else if(atrasadas > 0){
+      div.className = 'status-banner atrasada';
+      div.textContent = `🔴 ${atrasadas} conta${atrasadas>1?'s':''} atrasada${atrasadas>1?'s':''}!`;
     } else if(pendentes === 0){
       div.className = 'status-banner ok';
       div.textContent = '✅ Tudo pago neste mês!';
     } else {
       div.className = 'status-banner pendente';
-      div.textContent = `⚠️ ${pendentes} conta${pendentes>1?'s':''} pendente${pendentes>1?'s':''} neste mês`;
+      div.textContent = `⚠️ ${pendentes} conta${pendentes>1?'s':''} pendente${pendentes>1?'s':''} (ainda dentro do prazo)`;
     }
     return div;
   }
 
-  async function propagarPauloValor(campo, indice, valorAntigo, valorNovo){
+  async function propagarHomeReceitaBruta(valorNovo){
     let cursor = { year: state.year, month: state.month };
-    for(let i=1; i<=36; i++){
+    for(let i=1; i<=60; i++){
+      cursor = nextYearMonth(cursor.year, cursor.month, 1);
+      const futData = await loadData('home', cursor.year, cursor.month);
+      futData._fixadoHome = futData._fixadoHome || {receita_bruta:false};
+      if(futData._fixadoHome.receita_bruta) break;
+      futData.receita_bruta = valorNovo;
+      saveData('home', cursor.year, cursor.month);
+    }
+  }
+
+  async function propagarPauloValor(campo, indice, valorNovo){
+    let cursor = { year: state.year, month: state.month };
+    for(let i=1; i<=60; i++){
       cursor = nextYearMonth(cursor.year, cursor.month, 1);
       const futData = await loadData('paulo', cursor.year, cursor.month);
-      const atual = campo === 'contracheque' ? (Number(futData.contracheque)||0) : (Number(futData.emprestimos[indice].valor)||0);
-      if(Math.abs(atual - valorAntigo) > 0.005) break;
+      futData._fixado = futData._fixado || {contracheque:false, emp0:false, emp1:false, emp2:false};
+      const fieldKey = campo === 'contracheque' ? 'contracheque' : ('emp'+indice);
+      if(futData._fixado[fieldKey]) break;
       if(campo === 'contracheque') futData.contracheque = valorNovo;
       else futData.emprestimos[indice].valor = valorNovo;
       saveData('paulo', cursor.year, cursor.month);
@@ -560,10 +672,11 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     const liqInput = makeMoneyInput(
       ()=>data.contracheque,
       (v)=>{
-        const antigo = Number(data.contracheque)||0;
         data.contracheque = v;
+        data._fixado = data._fixado || {};
+        data._fixado.contracheque = true;
         persistAndRerender();
-        if(Math.abs(antigo-v)>0.005) propagarPauloValor('contracheque', null, antigo, v);
+        propagarPauloValor('contracheque', null, v);
       },
       ''
     );
@@ -587,10 +700,11 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       const valI = makeMoneyInput(
         ()=>e.valor,
         (v)=>{
-          const antigo = Number(e.valor)||0;
           e.valor = v;
+          data._fixado = data._fixado || {};
+          data._fixado['emp'+idx] = true;
           persistAndRerender();
-          if(Math.abs(antigo-v)>0.005) propagarPauloValor('emprestimo', idx, antigo, v);
+          propagarPauloValor('emprestimo', idx, v);
         },
         'valor'
       );
@@ -648,7 +762,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     brutaRow.innerHTML = `<label>Remuneração PGM</label>`;
     const brutaInput = makeMoneyInput(
       ()=>data.receita_bruta,
-      (v)=>{ data.receita_bruta = v; persistAndRerender(); },
+      (v)=>{
+        data.receita_bruta = v;
+        data._fixadoHome = data._fixadoHome || {};
+        data._fixadoHome.receita_bruta = true;
+        persistAndRerender();
+        propagarHomeReceitaBruta(v);
+      },
       ''
     );
     brutaRow.appendChild(brutaInput);
