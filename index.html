@@ -74,6 +74,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
 .parcela-tag{font-size:11px;color:var(--texto-sec);font-weight:600;margin-left:4px}
 
+.copiar-mes{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;padding-top:10px;border-top:1px dashed var(--cinza-borda)}
+.copiar-label{font-size:12.5px;color:var(--texto-sec);font-weight:600}
+.copiar-mes .select-data{padding:5px 8px;font-size:12.5px}
+
 .card{background:var(--branco);border-radius:var(--radius-lg);border:1px solid var(--cinza-borda);padding:1.3rem 1.3rem 1.1rem;margin-bottom:1rem}
 .card-titulo{font-size:14px;font-weight:600;color:var(--texto);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
 .card-titulo .tag{font-size:10.5px;font-weight:700;color:var(--verde-escuro);background:var(--verde-bg);border-radius:5px;padding:2px 7px;margin-right:8px;text-transform:uppercase;letter-spacing:.03em}
@@ -111,9 +115,11 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
 .despesa-linha{display:flex;align-items:center;gap:10px;padding:7px 8px;border-bottom:1px solid var(--cinza-borda);border-radius:6px;transition:background .15s ease}
 .despesa-linha.pago{background:#eef8f4}
+.despesa-linha.atrasada{background:#fdeeec}
 .icone-conta{font-size:15px;flex-shrink:0;width:20px;text-align:center}
-.despesa-linha .dia{width:24px;flex-shrink:0;text-align:right;font-family:'Source Serif 4',serif;font-size:12.5px;color:var(--texto-sec);font-weight:600}
-.despesa-linha .dia.vazio{opacity:.35}
+.despesa-linha .dia{width:32px;flex-shrink:0;text-align:center;font-family:'Source Serif 4',serif;font-size:12.5px;color:var(--texto-sec);font-weight:600;border:none;background:transparent;border-radius:4px;padding:3px 0}
+.despesa-linha .dia:focus{outline:1.5px solid var(--verde);background:#fff}
+.despesa-linha .dia.vazio{opacity:.55}
 .despesa-linha .nome{flex:1;font-size:13.5px;background:transparent;border:none;color:var(--texto);font-family:'Source Sans 3',sans-serif;padding:4px 2px;border-radius:4px}
 .despesa-linha .nome:focus{outline:1.5px solid var(--verde);background:#fff}
 .despesa-linha .valor{width:90px;text-align:right;font-family:'Source Serif 4',serif;font-size:13.5px;font-weight:600;border:none;background:transparent;color:var(--texto);padding:4px 4px;border-radius:4px;flex-shrink:0}
@@ -122,6 +128,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .status-toggle{font-family:'Source Sans 3',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.02em;border:none;background:none;cursor:pointer;padding:4px 2px;white-space:nowrap;flex-shrink:0}
 .status-toggle.pendente{color:var(--vermelho)}
 .status-toggle.pago{color:var(--verde)}
+.status-toggle.atrasada{color:#a8231a}
 
 .empty-hint{font-size:12.5px;color:var(--texto-sec);font-style:italic;padding:8px 0}
 
@@ -221,19 +228,60 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
   function storageKey(person, year, month){ return `dados:${person}:${year}:${month}`; }
 
-  function defaultDataFor(person, year, month){
+  async function buscarPauloAnterior(year, month){
+    for(let i=1;i<=36;i++){
+      const alvo = nextYearMonth(year, month, -i);
+      const key = storageKey('paulo', alvo.year, alvo.month);
+      let dado = cache[key];
+      if(!dado){
+        try{
+          const res = await storageGet(key);
+          if(res && res.value) dado = JSON.parse(res.value);
+        }catch(e){}
+      }
+      if(dado && ((Number(dado.contracheque)||0) > 0 || (dado.emprestimos||[]).some(e=>(Number(e.valor)||0)>0))){
+        return {
+          contracheque: Number(dado.contracheque)||0,
+          emprestimos: [
+            (dado.emprestimos&&dado.emprestimos[0])?Number(dado.emprestimos[0].valor)||0:0,
+            (dado.emprestimos&&dado.emprestimos[1])?Number(dado.emprestimos[1].valor)||0:0,
+            (dado.emprestimos&&dado.emprestimos[2])?Number(dado.emprestimos[2].valor)||0:0
+          ],
+          ajuste: Number(dado.ajuste)||0
+        };
+      }
+    }
+    return null;
+  }
+
+  async function defaultDataFor(person, year, month){
     const is2026 = (year === '2026');
     if(person === 'paulo'){
+      const temSeedHistorico = is2026 && CONTRACHEQUE_SEED[month];
+      if(temSeedHistorico){
+        return {
+          contracheque: CONTRACHEQUE_SEED[month] || 0,
+          emprestimos: [
+            {nome:'Empréstimo Neca', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[0]},
+            {nome:'Empréstimo Paulo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[1]},
+            {nome:'Meu Empréstimo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[2]}
+          ],
+          ajuste: AJUSTE_SEED[month] || 0,
+          receitas: [],
+          despesas: (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false}))
+        };
+      }
+      const anterior = await buscarPauloAnterior(year, month);
       return {
-        contracheque: is2026 ? (CONTRACHEQUE_SEED[month] || 0) : 0,
+        contracheque: anterior ? anterior.contracheque : 0,
         emprestimos: [
-          {nome:'Empréstimo Neca', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[0]) : 0},
-          {nome:'Empréstimo Paulo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[1]) : 0},
-          {nome:'Meu Empréstimo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[2]) : 0}
+          {nome:'Empréstimo Neca', valor: anterior ? anterior.emprestimos[0] : 0},
+          {nome:'Empréstimo Paulo', valor: anterior ? anterior.emprestimos[1] : 0},
+          {nome:'Meu Empréstimo', valor: anterior ? anterior.emprestimos[2] : 0}
         ],
-        ajuste: is2026 ? (AJUSTE_SEED[month] || 0) : 0,
+        ajuste: anterior ? anterior.ajuste : 0,
         receitas: [],
-        despesas: is2026 ? (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : []
+        despesas: []
       };
     }
     return {
@@ -284,7 +332,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       if(res && res.value){ dado = JSON.parse(res.value); }
     }catch(e){}
     if(!dado){
-      dado = defaultDataFor(person, year, month);
+      dado = await defaultDataFor(person, year, month);
       cache[key] = dado;
       saveData(person, year, month);
       return dado;
@@ -479,6 +527,19 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     return div;
   }
 
+  async function propagarPauloValor(campo, indice, valorAntigo, valorNovo){
+    let cursor = { year: state.year, month: state.month };
+    for(let i=1; i<=36; i++){
+      cursor = nextYearMonth(cursor.year, cursor.month, 1);
+      const futData = await loadData('paulo', cursor.year, cursor.month);
+      const atual = campo === 'contracheque' ? (Number(futData.contracheque)||0) : (Number(futData.emprestimos[indice].valor)||0);
+      if(Math.abs(atual - valorAntigo) > 0.005) break;
+      if(campo === 'contracheque') futData.contracheque = valorNovo;
+      else futData.emprestimos[indice].valor = valorNovo;
+      saveData('paulo', cursor.year, cursor.month);
+    }
+  }
+
   // ---------- ORÇAMENTO PAULO ----------
   function buildOrcamentoPaulo(data, homeData){
     const card = document.createElement('div');
@@ -498,7 +559,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     liqRow.innerHTML = `<label>Contracheque</label>`;
     const liqInput = makeMoneyInput(
       ()=>data.contracheque,
-      (v)=>{ data.contracheque = v; persistAndRerender(); },
+      (v)=>{
+        const antigo = Number(data.contracheque)||0;
+        data.contracheque = v;
+        persistAndRerender();
+        if(Math.abs(antigo-v)>0.005) propagarPauloValor('contracheque', null, antigo, v);
+      },
       ''
     );
     liqRow.appendChild(liqInput);
@@ -510,7 +576,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     card.appendChild(label);
 
     const list = document.createElement('div');
-    (data.emprestimos||[]).forEach((e)=>{
+    (data.emprestimos||[]).forEach((e, idx)=>{
       const row = document.createElement('div');
       row.className = 'linha';
       const nome = document.createElement('span');
@@ -520,7 +586,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       nome.textContent = e.nome;
       const valI = makeMoneyInput(
         ()=>e.valor,
-        (v)=>{ e.valor = v; persistAndRerender(); },
+        (v)=>{
+          const antigo = Number(e.valor)||0;
+          e.valor = v;
+          persistAndRerender();
+          if(Math.abs(antigo-v)>0.005) propagarPauloValor('emprestimo', idx, antigo, v);
+        },
         'valor'
       );
       row.appendChild(nome); row.appendChild(valI);
@@ -731,6 +802,35 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     };
     card.appendChild(addLine);
 
+    const copiarWrap = document.createElement('div');
+    copiarWrap.className = 'copiar-mes';
+    copiarWrap.innerHTML = `
+      <span class="copiar-label">Copiar contas de:</span>
+      <select class="select-data copiar-mes-sel"></select>
+      <select class="select-data copiar-ano-sel"></select>
+      <button class="btn-add">Copiar</button>`;
+    const selMes = copiarWrap.querySelector('.copiar-mes-sel');
+    const selAno = copiarWrap.querySelector('.copiar-ano-sel');
+    selMes.innerHTML = MONTHS.map((m,i)=>`<option value="${m}">${MONTH_LABELS[i]}</option>`).join('');
+    selAno.innerHTML = YEARS.map(y=>`<option value="${y}">${y}</option>`).join('');
+    const anteriorIdx = MONTHS.indexOf(state.month) - 1;
+    const mesPadrao = anteriorIdx >= 0 ? MONTHS[anteriorIdx] : MONTHS[11];
+    selMes.value = mesPadrao;
+    selAno.value = anteriorIdx >= 0 ? state.year : String(parseInt(state.year)-1);
+    copiarWrap.querySelector('.btn-add').onclick = async ()=>{
+      const origemMes = selMes.value, origemAno = selAno.value;
+      if(origemAno === state.year && origemMes === state.month) return;
+      const origemData = await loadData(state.person, origemAno, origemMes);
+      if(!origemData.despesas.length) return;
+      const ok = await confirmCopia(origemData.despesas.length, MONTH_LABELS[MONTHS.indexOf(origemMes)], origemAno);
+      if(!ok) return;
+      origemData.despesas.forEach(d=>{
+        data.despesas.push({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false});
+      });
+      persistAndRerender();
+    };
+    card.appendChild(copiarWrap);
+
     const totalLine = document.createElement('div');
     totalLine.className = 'liquida-box vermelha';
     const totalContas = (data.despesas||[]).reduce((s,d)=>s+(Number(d.valor)||0),0);
@@ -738,6 +838,26 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     card.appendChild(totalLine);
 
     return card;
+  }
+
+  function confirmCopia(qtd, mesLabel, ano){
+    return new Promise((resolve)=>{
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-box">
+          <div class="modal-titulo">Copiar ${qtd} conta${qtd>1?'s':''} de ${mesLabel}/${ano}?</div>
+          <div class="modal-texto">Elas serão adicionadas às contas já existentes neste mês, todas marcadas como pendentes.</div>
+          <div class="modal-botoes">
+            <button class="modal-btn destaque" data-v="sim">Copiar</button>
+            <button class="modal-btn cancelar" data-v="nao">Cancelar</button>
+          </div>
+        </div>`;
+      overlay.querySelectorAll('.modal-btn').forEach(b=>{
+        b.onclick = ()=>{ document.body.removeChild(overlay); resolve(b.dataset.v==='sim'); };
+      });
+      document.body.appendChild(overlay);
+    });
   }
 
   function confirmParcela(despesa){
@@ -775,6 +895,22 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     }
   }
 
+  function isAtrasada(d){
+    if(d.pago) return false;
+    const now = new Date();
+    const anoAtual = String(now.getFullYear());
+    const mesAtualIdx = now.getMonth();
+    const mesEstadoIdx = MONTHS.indexOf(state.month);
+    const anoEstado = parseInt(state.year);
+    const anoAtualNum = parseInt(anoAtual);
+    if(anoEstado < anoAtualNum) return true;
+    if(anoEstado > anoAtualNum) return false;
+    if(mesEstadoIdx < mesAtualIdx) return true;
+    if(mesEstadoIdx > mesAtualIdx) return false;
+    if(d.vencimento == null) return false;
+    return d.vencimento < now.getDate();
+  }
+
   function renderDespesasList(container, data){
     container.innerHTML = '';
     const items = data.despesas.map((d,i)=>({...d, _i:i}));
@@ -785,18 +921,26 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     });
     if(!items.length){ container.innerHTML = '<div class="empty-hint">Nenhuma conta lançada ainda.</div>'; return; }
     items.forEach(d=>{
+      const atrasada = isAtrasada(d);
       const row = document.createElement('div');
-      row.className = 'despesa-linha' + (d.pago ? ' pago' : '');
+      row.className = 'despesa-linha' + (d.pago ? ' pago' : '') + (atrasada ? ' atrasada' : '');
 
       const icone = document.createElement('span');
       icone.className = 'icone-conta';
       icone.textContent = getIconeConta(d.nome);
       row.appendChild(icone);
 
-      const day = document.createElement('div');
-      day.className = 'dia' + (d.vencimento==null ? ' vazio':'');
-      day.textContent = d.vencimento==null ? '—' : String(d.vencimento).padStart(2,'0');
-      row.appendChild(day);
+      const dayI = document.createElement('input');
+      dayI.className = 'dia' + (d.vencimento==null ? ' vazio':'');
+      dayI.type = 'number'; dayI.min='1'; dayI.max='31';
+      dayI.value = d.vencimento==null ? '' : d.vencimento;
+      dayI.placeholder = '—';
+      dayI.onchange = ()=>{
+        const v = dayI.value ? parseInt(dayI.value) : null;
+        data.despesas[d._i].vencimento = v;
+        persistAndRerender();
+      };
+      row.appendChild(dayI);
 
       const nameI = document.createElement('input');
       nameI.className='nome'; nameI.value=d.nome;
@@ -819,8 +963,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       row.appendChild(valI);
 
       const stamp = document.createElement('button');
-      stamp.className = 'status-toggle ' + (d.pago ? 'pago' : 'pendente');
-      stamp.textContent = d.pago ? '✓ PAGO' : 'PENDENTE';
+      stamp.className = 'status-toggle ' + (d.pago ? 'pago' : (atrasada ? 'atrasada' : 'pendente'));
+      stamp.textContent = d.pago ? '✓ PAGO' : (atrasada ? '⚠ ATRASADA' : 'PENDENTE');
       stamp.onclick = ()=>{
         data.despesas[d._i].pago = !data.despesas[d._i].pago;
         persistAndRerender();
