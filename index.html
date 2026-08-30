@@ -148,12 +148,17 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 {"JAN": [1091.61, 2988.0, 2263.39], "FEV": [1091.61, 3093.38, 2368.39], "MAR": [1091.61, 136.51, 592.62], "ABR": [1091.61, 136.51, 592.62], "MAI": [1091.61, 136.51, 592.62], "JUN": [1091.61, 136.51, 592.62], "JUL": [1091.61, 136.51, 592.62], "AGO": [1091.61, 136.51, 592.62], "SET": [1091.61, 136.51, 592.62], "OUT": [1091.61, 136.51, 592.62], "NOV": [1091.61, 136.51, 592.62], "DEZ": [1091.61, 136.51, 592.62]}
 
 </script>
+<script id="ajuste-seed" type="application/json">
+{"JAN": 113, "FEV": 0, "MAR": 113, "ABR": 113, "MAI": 118, "JUN": 118, "JUL": 118, "AGO": 120, "SET": 120, "OUT": 120, "NOV": 120, "DEZ": 120}
+
+</script>
 
 <script>
 (function(){
   const SEED = JSON.parse(document.getElementById('seed-data').textContent);
   const CONTRACHEQUE_SEED = JSON.parse(document.getElementById('contracheque-seed').textContent);
   const EMPRESTIMOS_SEED = JSON.parse(document.getElementById('emprestimos-seed').textContent);
+  const AJUSTE_SEED = JSON.parse(document.getElementById('ajuste-seed').textContent);
   const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const YEARS = ['2024','2025','2026','2027'];
@@ -206,6 +211,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
           {nome:'Empréstimo Paulo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[1]) : 0},
           {nome:'Meu Empréstimo', valor: is2026 ? ((EMPRESTIMOS_SEED[month]||[0,0,0])[2]) : 0}
         ],
+        ajuste: is2026 ? (AJUSTE_SEED[month] || 0) : 0,
         receitas: [],
         despesas: is2026 ? (SEED.paulo_despesas[month]||[]).map(d=>({nome:d.nome, valor:d.valor, vencimento:d.vencimento, pago:false})) : []
       };
@@ -282,6 +288,11 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       dado._emp_seed_aplicado = true;
       migrado = true;
     }
+    // Migração pontual: adiciona campo ajuste se não existir
+    if(person === 'paulo' && year === '2026' && dado.ajuste === undefined){
+      dado.ajuste = AJUSTE_SEED[month] || 0;
+      migrado = true;
+    }
     cache[key] = dado;
     if(migrado) saveData(person, year, month);
     return dado;
@@ -309,24 +320,17 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     return { contracheque, somaEmprestimos: soma, receitaBruta };
   }
 
-  function getFunerariaJazigo(homeData){
-    return (homeData.despesas||[]).filter(d=>{
-      const n = (d.nome||'').toLowerCase();
-      return n.includes('funer') || n.includes('jazigo');
-    }).reduce((s,d)=>s+(Number(d.valor)||0),0);
-  }
-
   function calcRemuneracoes(pauloData, homeData){
     const { receitaBruta } = calcPauloOrcamento(pauloData);
     const terco = receitaBruta / 3;
-    const fj = getFunerariaJazigo(homeData) / 3;
+    const ajuste = Number(pauloData.ajuste)||0;
     const empNeca = (pauloData.emprestimos[0] && pauloData.emprestimos[0].valor) || 0;
     const empPaulo = (pauloData.emprestimos[1] && pauloData.emprestimos[1].valor) || 0;
     const empMeu = (pauloData.emprestimos[2] && pauloData.emprestimos[2].valor) || 0;
-    const neca = terco - empNeca - fj;
-    const emsb = terco - empMeu - fj;
-    const receitaLiquida = terco - empPaulo - fj;
-    return { terco, fj, neca, emsb, receitaLiquida };
+    const neca = terco - empNeca - ajuste;
+    const emsb = terco - empMeu + ajuste;
+    const receitaLiquida = terco - empPaulo;
+    return { terco, ajuste, neca, emsb, receitaLiquida };
   }
 
   function getEmprestimoHome(homeData){
@@ -498,8 +502,23 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       <div class="card-titulo"><span><span class="tag">2</span>Remunerações</span></div>
       <div class="linha"><span class="nome" style="pointer-events:none;">EMSB</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.emsb)}</span></div>
       <div class="linha"><span class="nome" style="pointer-events:none;">NECA</span><span class="valor" style="pointer-events:none;">R$ ${fmt(r.neca)}</span></div>
-      <div class="empty-hint" style="margin-top:6px;">Base: receita líquida ÷ 3 = R$ ${fmt(r.terco)} · (Funerária + Jazigo do mês) ÷ 3: R$ ${fmt(r.fj)}</div>
     `;
+    const ajusteRow = document.createElement('div');
+    ajusteRow.className = 'bruta-linha';
+    ajusteRow.style.marginTop = '8px';
+    ajusteRow.innerHTML = `<label>Ajuste (soma no EMSB, subtrai do NECA)</label>`;
+    const ajusteInput = makeMoneyInput(
+      ()=>pauloData.ajuste,
+      (v)=>{ pauloData.ajuste = v; persistAndRerender(); },
+      ''
+    );
+    ajusteRow.appendChild(ajusteInput);
+    card.appendChild(ajusteRow);
+    const hint = document.createElement('div');
+    hint.className = 'empty-hint';
+    hint.style.marginTop = '6px';
+    hint.textContent = `Base: receita bruta ÷ 3 = R$ ${fmt(r.terco)}`;
+    card.appendChild(hint);
     return card;
   }
 
