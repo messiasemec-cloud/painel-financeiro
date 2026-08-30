@@ -28,6 +28,12 @@ body.aba-paulo{background:#b39ddb}
 .header-stripe{height:5px;background:linear-gradient(90deg,var(--verde) 0%,var(--verde) 40%,var(--laranja) 40%,var(--laranja) 75%,var(--azul) 75%,var(--azul) 100%)}
 
 .abas-wrap{background:var(--branco);border-bottom:1px solid var(--cinza-borda);position:sticky;top:0;z-index:5}
+.topo-fixo{background:var(--cinza-bg);padding:1rem 1.5rem 0.85rem;transition:background .2s ease}
+body.aba-paulo .topo-fixo{background:#b39ddb}
+.topo-fixo .painel-topo{max-width:1000px;margin:0 auto 1rem}
+.topo-fixo #resumoFixo{max-width:1000px;margin:0 auto}
+.topo-fixo #resumoFixo .scorecards{margin-bottom:0}
+.topo-fixo #resumoFixo .status-banner{margin-top:.75rem;margin-bottom:0}
 .abas{display:flex;max-width:1000px;margin:0 auto;padding:0 1.5rem;gap:4px;overflow-x:auto}
 .aba{padding:12px 18px;font-size:14px;font-weight:500;color:var(--texto-sec);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Source Sans 3',sans-serif}
 .aba:hover{color:var(--verde)}
@@ -168,20 +174,23 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
 
 <div class="abas-wrap">
   <div class="abas" id="personTabs"></div>
+  <div class="topo-fixo">
+    <div class="painel-topo">
+      <div class="painel-titulo" id="mesTitulo">—</div>
+      <div class="topo-direita">
+        <button id="btnDesfazer" class="btn-undo" title="Desfazer última edição">↶</button>
+        <button id="btnRefazer" class="btn-undo" title="Refazer">↷</button>
+        <div class="seletor-data">
+          <select class="select-data" id="anoSelect"></select>
+          <select class="select-data" id="mesSelect"></select>
+        </div>
+      </div>
+    </div>
+    <div id="resumoFixo"></div>
+  </div>
 </div>
 
 <div class="container">
-  <div class="painel-topo">
-    <div class="painel-titulo" id="mesTitulo">—</div>
-    <div class="topo-direita">
-      <button id="btnDesfazer" class="btn-undo" title="Desfazer última edição">↶</button>
-      <button id="btnRefazer" class="btn-undo" title="Refazer">↷</button>
-      <div class="seletor-data">
-        <select class="select-data" id="anoSelect"></select>
-        <select class="select-data" id="mesSelect"></select>
-      </div>
-    </div>
-  </div>
   <div id="content"></div>
 </div>
 
@@ -582,15 +591,18 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
     renderTabs();
     renderSeletorData();
     const content = document.getElementById('content');
+    const resumoFixo = document.getElementById('resumoFixo');
     content.innerHTML = '<div class="empty-hint">Carregando…</div>';
     const pauloData = await loadData('paulo', state.year, state.month);
     const homeData = await loadData('home', state.year, state.month);
     const data = state.person === 'paulo' ? pauloData : homeData;
     const other = state.person === 'paulo' ? homeData : pauloData;
 
+    resumoFixo.innerHTML = '';
+    resumoFixo.appendChild(buildSummary(state.person, data, other));
+    resumoFixo.appendChild(buildStatusPendencias(data));
+
     content.innerHTML = '';
-    content.appendChild(buildSummary(state.person, data, other));
-    content.appendChild(buildStatusPendencias(data));
     if(state.person === 'paulo'){
       content.appendChild(buildOrcamentoPaulo(pauloData, homeData));
       content.appendChild(buildRemuneracoesCard(pauloData, homeData));
