@@ -198,6 +198,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 {"JAN": 113, "FEV": 0, "MAR": 113, "ABR": 113, "MAI": 118, "JUN": 118, "JUL": 118, "AGO": 120, "SET": 120, "OUT": 120, "NOV": 120, "DEZ": 120}
 
 </script>
+<script id="parcelas-fixas" type="application/json">
+{"2026-DEZ": {"neca": [31, 96, 1091.61], "paulo": [22, 36, 136.51], "meu": [18, 18, 592.62]}, "2026-NOV": {"neca": [30, 96, 1091.61], "paulo": [21, 36, 136.51], "meu": [17, 18, 592.62]}, "2026-OUT": {"neca": [29, 96, 1091.61], "paulo": [20, 36, 136.51], "meu": [16, 18, 592.62]}, "2026-SET": {"neca": [28, 96, 1091.61], "paulo": [19, 36, 136.51], "meu": [15, 18, 592.62]}, "2027-ABR": {"neca": [35, 96, 1091.61], "paulo": [26, 36, 136.51], "meu": null}, "2027-AGO": {"neca": [39, 96, 1091.61], "paulo": [30, 36, 136.51], "meu": null}, "2027-DEZ": {"neca": [43, 96, 1091.61], "paulo": [34, 36, 136.51], "meu": null}, "2027-FEV": {"neca": [33, 96, 1091.61], "paulo": [24, 36, 136.51], "meu": null}, "2027-JAN": {"neca": [32, 96, 1091.61], "paulo": [23, 36, 136.51], "meu": null}, "2027-JUL": {"neca": [38, 96, 1091.61], "paulo": [29, 36, 136.51], "meu": null}, "2027-JUN": {"neca": [37, 96, 1091.61], "paulo": [28, 36, 136.51], "meu": null}, "2027-MAI": {"neca": [36, 96, 1091.61], "paulo": [27, 36, 136.51], "meu": null}, "2027-MAR": {"neca": [34, 96, 1091.61], "paulo": [25, 36, 136.51], "meu": null}, "2027-NOV": {"neca": [42, 96, 1091.61], "paulo": [33, 36, 136.51], "meu": null}, "2027-OUT": {"neca": [41, 96, 1091.61], "paulo": [32, 36, 136.51], "meu": null}, "2027-SET": {"neca": [40, 96, 1091.61], "paulo": [31, 36, 136.51], "meu": null}}
+
+</script>
 
 <script>
 (function(){
@@ -205,6 +209,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   const CONTRACHEQUE_SEED = JSON.parse(document.getElementById('contracheque-seed').textContent);
   const EMPRESTIMOS_SEED = JSON.parse(document.getElementById('emprestimos-seed').textContent);
   const AJUSTE_SEED = JSON.parse(document.getElementById('ajuste-seed').textContent);
+  const PARCELAS_FIXAS = JSON.parse(document.getElementById('parcelas-fixas').textContent);
   const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const YEARS = ['2024','2025','2026','2027'];
@@ -258,20 +263,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
           if(res && res.value) dado = JSON.parse(res.value);
         }catch(e){}
       }
-      // garante a referência de parcela de setembro/2026 mesmo se esse mês
-      // nunca tiver sido aberto nesta sessão (evita ficar em branco ao pular direto pra ele)
-      if(dado && alvo.year === '2026' && ['SET','OUT','NOV','DEZ'].includes(alvo.month) && dado.emprestimos){
-        if(dado.emprestimos[0] && !dado.emprestimos[0].parcelaRef) dado.emprestimos[0].parcelaRef = {year:'2026', month:'SET', parcela:28, total:96};
-        if(dado.emprestimos[1] && !dado.emprestimos[1].parcelaRef) dado.emprestimos[1].parcelaRef = {year:'2026', month:'SET', parcela:19, total:36};
-        if(dado.emprestimos[2] && !dado.emprestimos[2].parcelaRef) dado.emprestimos[2].parcelaRef = {year:'2026', month:'SET', parcela:15, total:18};
-      }
       if(dado && ((Number(dado.contracheque)||0) > 0 || (dado.emprestimos||[]).some(e=>(Number(e.valor)||0)>0))){
         return {
           contracheque: Number(dado.contracheque)||0,
-          emprestimos: (dado.emprestimos||[]).map(e=>({
-            nome: e.nome, valor: Number(e.valor)||0,
-            parcelaRef: e.parcelaRef || null
-          })),
+          emprestimos: (dado.emprestimos||[]).map(e=>({ nome: e.nome, valor: Number(e.valor)||0 })),
           ajuste: Number(dado.ajuste)||0
         };
       }
@@ -302,15 +297,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     if(person === 'paulo'){
       const temSeedHistorico = is2026 && CONTRACHEQUE_SEED[month];
       if(temSeedHistorico){
-        const mesesComParcela = ['SET','OUT','NOV','DEZ'];
-        const temParcela = mesesComParcela.includes(month);
-        const refParcela = (parcela, total) => temParcela ? {year:'2026', month:'SET', parcela, total} : null;
         return {
           contracheque: CONTRACHEQUE_SEED[month] || 0,
           emprestimos: [
-            {nome:'Empréstimo Neca', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[0], parcelaRef: refParcela(28, 96)},
-            {nome:'Empréstimo Paulo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[1], parcelaRef: refParcela(19, 36)},
-            {nome:'Meu Empréstimo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[2], parcelaRef: refParcela(15, 18)}
+            {nome:'Empréstimo Neca', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[0]},
+            {nome:'Empréstimo Paulo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[1]},
+            {nome:'Meu Empréstimo', valor: (EMPRESTIMOS_SEED[month]||[0,0,0])[2]}
           ],
           ajuste: AJUSTE_SEED[month] || 0,
           receitas: [],
@@ -323,8 +315,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
         {nome:'Empréstimo Neca'}, {nome:'Empréstimo Paulo'}, {nome:'Meu Empréstimo'}
       ];
       const emprestimos = anterior && anterior.emprestimos.length
-        ? anterior.emprestimos.map(e=>({nome:e.nome, valor:e.valor, parcelaRef:e.parcelaRef}))
-        : empBase.map(e=>({nome:e.nome, valor:0, parcelaRef:null}));
+        ? anterior.emprestimos.map(e=>({nome:e.nome, valor:e.valor}))
+        : empBase.map(e=>({nome:e.nome, valor:0}));
       return {
         contracheque: anterior ? anterior.contracheque : 0,
         emprestimos,
@@ -425,29 +417,15 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       dado._fixadoHome = { receita_bruta: year === '2026' };
       migrado = true;
     }
-    if(person === 'paulo' && dado.emprestimos && dado.emprestimos.some(e=>e.parcelaRef === undefined)){
+    if(person === 'paulo' && dado.emprestimos){
       dado.emprestimos.forEach(e=>{
-        if(e.parcelaRef === undefined){
-          if(e.parcelaAtual && e.parcelaTotal){
-            e.parcelaRef = { year, month, parcela: e.parcelaAtual, total: e.parcelaTotal };
-          } else {
-            e.parcelaRef = null;
-          }
-        }
+        delete e.parcelaRef;
         delete e.parcelaAtual;
         delete e.parcelaTotal;
         delete e.finalizado;
       });
-      migrado = true;
     }
-    if(person === 'paulo' && year === '2026' && ['SET','OUT','NOV','DEZ'].includes(month) && !dado._parcelaSetAplicada){
-      if(dado.emprestimos && dado.emprestimos[0]) dado.emprestimos[0].parcelaRef = {year:'2026', month:'SET', parcela:28, total:96};
-      if(dado.emprestimos && dado.emprestimos[1]) dado.emprestimos[1].parcelaRef = {year:'2026', month:'SET', parcela:19, total:36};
-      if(dado.emprestimos && dado.emprestimos[2]) dado.emprestimos[2].parcelaRef = {year:'2026', month:'SET', parcela:15, total:18};
-      dado._parcelaSetAplicada = true;
-      migrado = true;
-    }
-    if(person === 'paulo' && !dado._parcelaSincronizada){
+    if(person === 'paulo' && !dado._contrachequeSincronizado){
       const anterior = await buscarPauloAnterior(year, month);
       if(anterior){
         const contrachequeFixado = dado._fixado && dado._fixado.contracheque;
@@ -463,16 +441,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
             if(!atualEntry || !antEntry) continue;
             const atualValor = Number(atualEntry.valor)||0;
             const antValor = Number(antEntry.valor)||0;
-            if(antEntry.parcelaRef && !atualEntry.parcelaRef){
-              atualEntry.parcelaRef = antEntry.parcelaRef;
-              atualEntry.valor = antValor;
-            } else if(atualValor === 0 && !atualEntry.parcelaRef && antValor > 0){
+            if(atualValor === 0 && antValor > 0){
               atualEntry.valor = antValor;
             }
           }
         }
       }
-      dado._parcelaSincronizada = true;
+      dado._contrachequeSincronizado = true;
       migrado = true;
     }
     cache[key] = dado;
@@ -499,16 +474,26 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   }
 
   function resolverEmprestimo(e, year, month){
-    if(!e || !e.parcelaRef){
-      return { valor: (e ? Number(e.valor)||0 : 0), parcelaAtual: null, parcelaTotal: null, finalizado: false };
+    if(!e) return { valor: 0, parcelaAtual: null, parcelaTotal: null, finalizado: false };
+    const nomeChave = idxDoNome(e.nome);
+    if(nomeChave){
+      const key = `${year}-${month}`;
+      const linha = PARCELAS_FIXAS[key];
+      if(linha){
+        const par = linha[nomeChave];
+        if(par === null) return { valor: 0, parcelaAtual: null, parcelaTotal: null, finalizado: true };
+        if(par) return { valor: par[2], parcelaAtual: par[0], parcelaTotal: par[1], finalizado: false };
+      }
     }
-    const ref = e.parcelaRef;
-    const diff = mesIndice(year, month) - mesIndice(ref.year, ref.month);
-    const parcelaCalc = ref.parcela + diff;
-    if(parcelaCalc > ref.total || parcelaCalc < 1){
-      return { valor: 0, parcelaAtual: null, parcelaTotal: null, finalizado: true };
-    }
-    return { valor: Number(e.valor)||0, parcelaAtual: parcelaCalc, parcelaTotal: ref.total, finalizado: false };
+    return { valor: Number(e.valor)||0, parcelaAtual: null, parcelaTotal: null, finalizado: false };
+  }
+
+  function idxDoNome(nome){
+    if(!nome) return null;
+    if(nome === 'Empréstimo Neca') return 'neca';
+    if(nome === 'Empréstimo Paulo') return 'paulo';
+    if(nome === 'Meu Empréstimo') return 'meu';
+    return null;
   }
 
   // ---------- Cálculos ----------
@@ -749,8 +734,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       const fieldKey = 'emp'+idx;
       if(futData._fixado[fieldKey]) break;
       futData.emprestimos = futData.emprestimos || [];
-      if(!futData.emprestimos[idx]) futData.emprestimos[idx] = {nome:'', valor:0, parcelaRef:null};
-      if(futData.emprestimos[idx].parcelaRef) break;
+      if(!futData.emprestimos[idx]) futData.emprestimos[idx] = {nome:'', valor:0};
       futData.emprestimos[idx].valor = valorNovo;
       saveData('paulo', cursor.year, cursor.month);
     }
@@ -758,63 +742,16 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 
   function filtrarDescontosHome(homeData, pauloData){
     const meuEmp = pauloData.emprestimos && pauloData.emprestimos[2];
-    const meuFinalizado = meuEmp && meuEmp.parcelaRef && resolverEmprestimo(meuEmp, state.year, state.month).finalizado;
+    const meuFinalizado = meuEmp && resolverEmprestimo(meuEmp, state.year, state.month).finalizado;
     if(!meuFinalizado) return homeData.descontos || [];
     return (homeData.descontos||[]).filter(d=>!/empr[ée]stimo/i.test(d.nome||''));
-  }
-
-  function abrirModalParcelamento(e){
-    return new Promise((resolve)=>{
-      const overlay = document.createElement('div');
-      overlay.className = 'modal-overlay';
-      overlay.innerHTML = `
-        <div class="modal-box">
-          <div class="modal-titulo">Parcelamento — ${e.nome || 'empréstimo'}</div>
-          <div class="modal-texto">Diga em que parcela esse empréstimo está NESTE mês (${MONTH_LABELS[MONTHS.indexOf(state.month)]}/${state.year}). A partir disso, o sistema calcula sozinho a parcela certa em qualquer mês, sem precisar editar mês a mês.</div>
-          <div class="modal-campos">
-            <label>Valor da parcela<input type="number" step="0.01" class="m-valor" value="${e.valor||''}"></label>
-            <label>Parcela atual neste mês (nº)<input type="number" min="1" class="m-atual" value="${e.parcelaRef ? e.parcelaRef.parcela : ''}"></label>
-            <label>Total de parcelas<input type="number" min="1" class="m-total" value="${e.parcelaRef ? e.parcelaRef.total : ''}"></label>
-          </div>
-          <div class="modal-botoes">
-            <button class="modal-btn destaque" data-v="aplicar">Aplicar</button>
-            <button class="modal-btn" data-v="remover">Remover parcelamento (fica recorrente)</button>
-            <button class="modal-btn cancelar" data-v="cancelar">Cancelar</button>
-          </div>
-        </div>`;
-      const get = (cls)=>overlay.querySelector(cls);
-      overlay.querySelectorAll('.modal-btn').forEach(b=>{
-        b.onclick = ()=>{
-          const v = b.dataset.v;
-          document.body.removeChild(overlay);
-          if(v === 'cancelar'){ resolve(null); return; }
-          if(v === 'remover'){ resolve({valor: parseFloat(get('.m-valor').value)||0, atual:null, total:null}); return; }
-          resolve({
-            valor: parseFloat(get('.m-valor').value)||0,
-            atual: get('.m-atual').value ? parseInt(get('.m-atual').value) : null,
-            total: get('.m-total').value ? parseInt(get('.m-total').value) : null
-          });
-        };
-      });
-      document.body.appendChild(overlay);
-    });
-  }
-
-  function aplicarParcelamento(e, data, resultado){
-    if(!resultado) return;
-    e.valor = resultado.valor;
-    if(resultado.atual && resultado.total){
-      e.parcelaRef = { year: state.year, month: state.month, parcela: resultado.atual, total: resultado.total };
-    } else {
-      e.parcelaRef = null;
-    }
-    persistAndRerender();
   }
 
   function renderEmprestimoRow(e, idx, data){
     const row = document.createElement('div');
     row.className = 'linha emprestimo-linha';
     const resolvido = resolverEmprestimo(e, state.year, state.month);
+    const travadoPelaTabela = idx < 3 && resolvido.parcelaTotal != null;
 
     let nome;
     if(idx < 3){
@@ -831,18 +768,26 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     }
     row.appendChild(nome);
 
-    const valI = makeMoneyInput(
-      ()=>e.valor,
-      (v)=>{
-        e.valor = v;
-        data._fixado = data._fixado || {};
-        data._fixado['emp'+idx] = true;
-        persistAndRerender();
-        if(!e.parcelaRef) propagarPauloValorSimples(idx, v);
-      },
-      'valor'
-    );
-    row.appendChild(valI);
+    if(travadoPelaTabela){
+      const valorFixo = document.createElement('span');
+      valorFixo.className = 'valor';
+      valorFixo.style.pointerEvents = 'none';
+      valorFixo.textContent = 'R$ ' + fmt(resolvido.valor);
+      row.appendChild(valorFixo);
+    } else {
+      const valI = makeMoneyInput(
+        ()=>e.valor,
+        (v)=>{
+          e.valor = v;
+          data._fixado = data._fixado || {};
+          data._fixado['emp'+idx] = true;
+          persistAndRerender();
+          propagarPauloValorSimples(idx, v);
+        },
+        'valor'
+      );
+      row.appendChild(valI);
+    }
 
     if(resolvido.parcelaTotal){
       const tag = document.createElement('span');
@@ -850,16 +795,6 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       tag.textContent = `(${resolvido.parcelaAtual}/${resolvido.parcelaTotal})`;
       row.appendChild(tag);
     }
-
-    const btnParcelar = document.createElement('button');
-    btnParcelar.className = 'btn-parcelar';
-    btnParcelar.textContent = '⚙';
-    btnParcelar.title = 'Definir parcelamento';
-    btnParcelar.onclick = async ()=>{
-      const resultado = await abrirModalParcelamento(e);
-      aplicarParcelamento(e, data, resultado);
-    };
-    row.appendChild(btnParcelar);
 
     if(idx >= 3){
       const del = document.createElement('button');
@@ -923,7 +858,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       const nome = enameI.value.trim();
       const valor = parseFloat(evalI.value)||0;
       if(!nome) return;
-      data.emprestimos.push({nome, valor, parcelaRef:null});
+      data.emprestimos.push({nome, valor});
       enameI.value=''; evalI.value='';
       persistAndRerender();
     };
