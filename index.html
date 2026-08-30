@@ -86,6 +86,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
 .parcela-inputs{display:flex;align-items:center;gap:2px;font-size:12px;color:var(--texto-sec);flex-shrink:0}
 .parcela-num{width:36px;text-align:center;font-family:'Source Serif 4',serif;font-size:12px;border:1px solid var(--cinza-borda);border-radius:4px;padding:3px 2px}
 .parcela-num:focus{outline:none;border-color:var(--verde)}
+.btn-parcelar{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--cinza-borda);background:#fff;color:var(--texto-sec);font-size:13px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.btn-parcelar:hover{border-color:var(--verde);color:var(--verde)}
+.modal-campos{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.modal-campos label{font-size:12.5px;color:var(--texto-sec);font-weight:600;display:flex;flex-direction:column;gap:4px}
+.modal-campos input{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;color:var(--texto);border:1.5px solid var(--cinza-borda);border-radius:6px;padding:7px 9px}
+.modal-campos input:focus{outline:none;border-color:var(--verde)}
 
 .card{background:var(--branco);border-radius:var(--radius-lg);border:1px solid var(--cinza-borda);padding:1.3rem 1.3rem 1.1rem;margin-bottom:1rem}
 .card-titulo{font-size:14px;font-weight:600;color:var(--texto);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
@@ -716,6 +722,63 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     }
   }
 
+  function abrirModalParcelamento(e, idx, data){
+    return new Promise((resolve)=>{
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-box">
+          <div class="modal-titulo">Parcelamento — ${e.nome || 'empréstimo'}</div>
+          <div class="modal-texto">Preencha os 3 valores e clique em Aplicar. A partir do mês atual, o sistema mesmo vai contando as parcelas pra frente e zera sozinho quando terminar.</div>
+          <div class="modal-campos">
+            <label>Valor da parcela<input type="number" step="0.01" class="m-valor" value="${e.valor||''}"></label>
+            <label>Parcela atual (nº)<input type="number" min="1" class="m-atual" value="${e.parcelaAtual||''}"></label>
+            <label>Total de parcelas<input type="number" min="1" class="m-total" value="${e.parcelaTotal||''}"></label>
+          </div>
+          <div class="modal-botoes">
+            <button class="modal-btn destaque" data-v="aplicar">Aplicar</button>
+            <button class="modal-btn" data-v="remover">Remover parcelamento (fica recorrente)</button>
+            <button class="modal-btn cancelar" data-v="cancelar">Cancelar</button>
+          </div>
+        </div>`;
+      const get = (cls)=>overlay.querySelector(cls);
+      overlay.querySelectorAll('.modal-btn').forEach(b=>{
+        b.onclick = ()=>{
+          const v = b.dataset.v;
+          document.body.removeChild(overlay);
+          if(v === 'cancelar'){ resolve(null); return; }
+          if(v === 'remover'){ resolve({valor: parseFloat(get('.m-valor').value)||0, atual:null, total:null}); return; }
+          resolve({
+            valor: parseFloat(get('.m-valor').value)||0,
+            atual: get('.m-atual').value ? parseInt(get('.m-atual').value) : null,
+            total: get('.m-total').value ? parseInt(get('.m-total').value) : null
+          });
+        };
+      });
+      document.body.appendChild(overlay);
+    });
+  }
+
+  async function aplicarParcelamento(e, idx, data, resultado){
+    if(!resultado) return;
+    let { valor, atual, total } = resultado;
+    if(total && atual && atual > total){
+      valor = 0;
+      e.valor = 0; e.parcelaAtual = null; e.parcelaTotal = null; e.finalizado = true;
+      data._fixado = data._fixado || {};
+      data._fixado['emp'+idx] = true;
+      persistAndRerender();
+      await propagarEmprestimo(idx, 0, atual, total);
+      if(idx === 2) await removerEmprestimoHomeCorrespondente(state.year, state.month);
+      return;
+    }
+    e.valor = valor; e.parcelaAtual = atual; e.parcelaTotal = total; e.finalizado = false;
+    data._fixado = data._fixado || {};
+    data._fixado['emp'+idx] = true;
+    persistAndRerender();
+    await propagarEmprestimo(idx, valor, atual, total);
+  }
+
   function renderEmprestimoRow(e, idx, data){
     const row = document.createElement('div');
     row.className = 'linha emprestimo-linha';
@@ -748,38 +811,22 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     );
     row.appendChild(valI);
 
-    const parcelaWrap = document.createElement('span');
-    parcelaWrap.className = 'parcela-inputs';
-    const atualI = document.createElement('input');
-    atualI.type='number'; atualI.min='1'; atualI.className='parcela-num'; atualI.placeholder='nº';
-    atualI.value = e.parcelaAtual || '';
-    const totalI = document.createElement('input');
-    totalI.type='number'; totalI.min='1'; totalI.className='parcela-num'; totalI.placeholder='de';
-    totalI.value = e.parcelaTotal || '';
-    const commitParcela = ()=>{
-      const atual = atualI.value ? parseInt(atualI.value) : null;
-      const total = totalI.value ? parseInt(totalI.value) : null;
-      if(total && atual && atual > total){
-        e.valor = 0; e.parcelaAtual = null; e.parcelaTotal = null; e.finalizado = true;
-        data._fixado = data._fixado || {};
-        data._fixado['emp'+idx] = true;
-        persistAndRerender();
-        propagarEmprestimo(idx, e.valor, atual, total);
-        if(idx === 2) removerEmprestimoHomeCorrespondente(state.year, state.month);
-        return;
-      }
-      e.parcelaAtual = atual; e.parcelaTotal = total; e.finalizado = false;
-      data._fixado = data._fixado || {};
-      data._fixado['emp'+idx] = true;
-      persistAndRerender();
-      propagarEmprestimo(idx, e.valor, atual, total);
+    if(e.parcelaTotal){
+      const tag = document.createElement('span');
+      tag.className = 'parcela-tag';
+      tag.textContent = `(${e.parcelaAtual}/${e.parcelaTotal})`;
+      row.appendChild(tag);
+    }
+
+    const btnParcelar = document.createElement('button');
+    btnParcelar.className = 'btn-parcelar';
+    btnParcelar.textContent = '⚙';
+    btnParcelar.title = 'Definir parcelamento';
+    btnParcelar.onclick = async ()=>{
+      const resultado = await abrirModalParcelamento(e, idx, data);
+      aplicarParcelamento(e, idx, data, resultado);
     };
-    atualI.onchange = commitParcela;
-    totalI.onchange = commitParcela;
-    parcelaWrap.appendChild(atualI);
-    parcelaWrap.appendChild(document.createTextNode('/'));
-    parcelaWrap.appendChild(totalI);
-    row.appendChild(parcelaWrap);
+    row.appendChild(btnParcelar);
 
     if(idx >= 3){
       const del = document.createElement('button');
