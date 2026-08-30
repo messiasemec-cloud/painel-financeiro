@@ -873,6 +873,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
   }
 
   // ---------- REMUNERAÇÕES (só Paulo) ----------
+  function getFunerariaJazigo(homeData){
+    return (homeData.despesas||[]).filter(d=>{
+      const n = (d.nome||'').toLowerCase();
+      return n.includes('funer') || n.includes('jazigo');
+    }).reduce((s,d)=>s+(Number(d.valor)||0),0);
+  }
+
   function buildRemuneracoesCard(pauloData, homeData){
     const card = document.createElement('div');
     card.className = 'card';
@@ -893,6 +900,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
     );
     ajusteRow.appendChild(ajusteInput);
     card.appendChild(ajusteRow);
+    const sugestao = document.createElement('div');
+    sugestao.className = 'empty-hint';
+    sugestao.style.marginTop = '4px';
+    const fjSugerido = getFunerariaJazigo(homeData) / 3;
+    sugestao.textContent = `Sugestão: (Jazigo + Funerária) ÷ 3 da aba Minhas Contas neste mês = R$ ${fmt(fjSugerido)}`;
+    card.appendChild(sugestao);
     const hint = document.createElement('div');
     hint.className = 'empty-hint';
     hint.style.marginTop = '6px';
