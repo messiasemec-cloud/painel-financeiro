@@ -447,15 +447,28 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cinza-bg);color:var
       dado._parcelaSetAplicada = true;
       migrado = true;
     }
-    if(person === 'paulo' && dado.emprestimos && !dado._parcelaSincronizada){
+    if(person === 'paulo' && !dado._parcelaSincronizada){
       const anterior = await buscarPauloAnterior(year, month);
-      if(anterior && anterior.emprestimos){
-        for(let idx=0; idx<3; idx++){
-          const fixado = dado._fixado && dado._fixado['emp'+idx];
-          const aRef = anterior.emprestimos[idx] && anterior.emprestimos[idx].parcelaRef;
-          if(!fixado && aRef && !(dado.emprestimos[idx] && dado.emprestimos[idx].parcelaRef)){
-            dado.emprestimos[idx].parcelaRef = aRef;
-            dado.emprestimos[idx].valor = anterior.emprestimos[idx].valor;
+      if(anterior){
+        const contrachequeFixado = dado._fixado && dado._fixado.contracheque;
+        if(!contrachequeFixado && (Number(dado.contracheque)||0) === 0 && anterior.contracheque > 0){
+          dado.contracheque = anterior.contracheque;
+        }
+        if(dado.emprestimos && anterior.emprestimos){
+          for(let idx=0; idx<3; idx++){
+            const fixado = dado._fixado && dado._fixado['emp'+idx];
+            if(fixado) continue;
+            const atualEntry = dado.emprestimos[idx];
+            const antEntry = anterior.emprestimos[idx];
+            if(!atualEntry || !antEntry) continue;
+            const atualValor = Number(atualEntry.valor)||0;
+            const antValor = Number(antEntry.valor)||0;
+            if(antEntry.parcelaRef && !atualEntry.parcelaRef){
+              atualEntry.parcelaRef = antEntry.parcelaRef;
+              atualEntry.valor = antValor;
+            } else if(atualValor === 0 && !atualEntry.parcelaRef && antValor > 0){
+              atualEntry.valor = antValor;
+            }
           }
         }
       }
