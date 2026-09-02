@@ -359,7 +359,8 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
     if(window.storage){ try{ return await window.storage.get(key, false); }catch(e){ return null; } }
     if(SHEETS_API_URL){
       try{
-        const res = await fetch(SHEETS_API_URL + '?key=' + encodeURIComponent(key));
+        const url = SHEETS_API_URL + '?key=' + encodeURIComponent(key) + '&_t=' + Date.now();
+        const res = await fetch(url, { cache: 'no-store' });
         const json = await res.json();
         if(json && json.value != null){
           try{ localStorage.setItem(key, json.value); }catch(e){}
