@@ -174,6 +174,10 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
 </div>
 <div class="header-stripe"></div>
 
+<div id="avisoSync" style="display:none;background:#c0392b;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:8px;">
+  ⚠️ Não foi possível salvar na planilha agora. Seus dados estão guardados neste navegador, mas confira sua internet ou o link do Apps Script assim que possível.
+</div>
+
 <div class="abas-wrap">
   <div class="abas" id="personTabs"></div>
   <div class="topo-fixo">
@@ -371,14 +375,32 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
     try{ const v = localStorage.getItem(key); return v!=null ? {value:v} : null; }catch(e){ return null; }
   }
 
+  let syncFalhou = false;
+
   async function storageSet(key, value){
     if(window.storage){ try{ return await window.storage.set(key, value, false); }catch(e){ console.error('Erro ao salvar', e); return; } }
     try{ localStorage.setItem(key, value); }catch(e){}
     if(SHEETS_API_URL){
       try{
-        await fetch(SHEETS_API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({key, value}) });
-      }catch(e){ console.error('Erro ao sincronizar com a planilha', e); }
+        const res = await fetch(SHEETS_API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({key, value}) });
+        const json = await res.json().catch(()=>null);
+        if(!res.ok || !json || json.ok !== true){
+          syncFalhou = true;
+          console.error('Planilha respondeu sem confirmar o salvamento', res.status, json);
+        } else {
+          syncFalhou = false;
+        }
+      }catch(e){
+        syncFalhou = true;
+        console.error('Erro ao sincronizar com a planilha', e);
+      }
+      atualizarAvisoSync();
     }
+  }
+
+  function atualizarAvisoSync(){
+    const el = document.getElementById('avisoSync');
+    if(el) el.style.display = syncFalhou ? 'block' : 'none';
   }
 
   async function loadData(person, year, month){
