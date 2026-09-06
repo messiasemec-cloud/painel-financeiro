@@ -617,7 +617,8 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
     renderSeletorData();
     const content = document.getElementById('content');
     const resumoFixo = document.getElementById('resumoFixo');
-    content.innerHTML = '<div class="empty-hint">Carregando…</div>';
+    const jaEmCache = cache[storageKey('paulo', state.year, state.month)] && cache[storageKey('home', state.year, state.month)];
+    if(!jaEmCache) content.innerHTML = '<div class="empty-hint">Carregando…</div>';
     const pauloData = await loadData('paulo', state.year, state.month);
     const homeData = await loadData('home', state.year, state.month);
     const data = state.person === 'paulo' ? pauloData : homeData;
@@ -663,7 +664,8 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
       redoStack = [];
     }
     saveData(state.person, state.year, state.month);
-    render();
+    const scrollY = window.scrollY;
+    render().then(()=>{ window.scrollTo(0, scrollY); });
   }
 
   async function desfazer(){
