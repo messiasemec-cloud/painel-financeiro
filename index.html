@@ -126,6 +126,8 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
 .add-linha input.f-parcelas{width:88px;font-family:'Source Serif 4',serif}
 .btn-add{font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:12.5px;background:var(--verde);color:#fff;border:none;border-radius:6px;padding:7px 14px;cursor:pointer}
 .btn-add:hover{background:var(--verde-escuro)}
+.check-recorrente{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--texto-sec);font-weight:500;white-space:nowrap}
+.check-recorrente input{margin:0}
 
 .bruta-linha{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .bruta-linha label{font-size:13px;color:var(--texto-sec);font-weight:500}
@@ -1106,27 +1108,45 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
       <input class="f-nome" placeholder="Nova conta">
       <input class="f-valor" type="number" step="0.01" placeholder="Valor">
       <input class="f-parcelas" type="number" min="1" max="60" placeholder="Nº parcelas">
+      <label class="check-recorrente"><input type="checkbox" class="f-recorrente"> Repetir até dezembro deste ano</label>
       <button class="btn-add">+ Conta</button>`;
     const dayI = addLine.querySelector('.f-dia');
     const nameI = addLine.querySelector('.f-nome');
     const valI = addLine.querySelector('.f-valor');
     const parcI = addLine.querySelector('.f-parcelas');
+    const recorrenteI = addLine.querySelector('.f-recorrente');
+    parcI.oninput = ()=>{ if(parcI.value) recorrenteI.checked = false; };
+    recorrenteI.onchange = ()=>{ if(recorrenteI.checked) parcI.value = ''; };
     addLine.querySelector('.btn-add').onclick = async ()=>{
       const nome = nameI.value.trim();
       const valor = parseFloat(valI.value)||0;
       const dia = dayI.value ? parseInt(dayI.value) : null;
-      const parcelas = parcI.value ? Math.max(1, parseInt(parcI.value)) : 1;
       if(!nome) return;
-      const parcelaId = parcelas > 1 ? ('p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)) : null;
-      data.despesas.push({nome, valor, vencimento: dia, pago:false, parcelaId, parcelaIndex: 0, parcelaTotal: parcelas});
-      persistAndRerender();
-      for(let i=1; i<parcelas; i++){
-        const alvo = nextYearMonth(state.year, state.month, i);
-        const futData = await loadData(state.person, alvo.year, alvo.month);
-        futData.despesas.push({nome, valor, vencimento: dia, pago:false, parcelaId, parcelaIndex: i, parcelaTotal: parcelas});
-        saveData(state.person, alvo.year, alvo.month);
+      if(recorrenteI.checked){
+        const mesesRestantes = 11 - MONTHS.indexOf(state.month);
+        const total = mesesRestantes + 1;
+        const parcelaId = 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        data.despesas.push({nome, valor, vencimento: dia, pago:false, parcelaId, parcelaIndex: 0, parcelaTotal: total});
+        persistAndRerender();
+        for(let i=1; i<=mesesRestantes; i++){
+          const alvo = nextYearMonth(state.year, state.month, i);
+          const futData = await loadData(state.person, alvo.year, alvo.month);
+          futData.despesas.push({nome, valor, vencimento: dia, pago:false, parcelaId, parcelaIndex: i, parcelaTotal: total});
+          saveData(state.person, alvo.year, alvo.month);
+        }
+      } else {
+        const parcelas = parcI.value ? Math.max(1, parseInt(parcI.value)) : 1;
+        const parcelaId = parcelas > 1 ? ('p_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)) : null;
+        data.despesas.push({nome, valor, vencimento: dia, pago:false, parcelaId, parcelaIndex: 0, parcelaTotal: parcelas});
+        persistAndRerender();
+        for(let i=1; i<parcelas; i++){
+          const alvo = nextYearMonth(state.year, state.month, i);
+          const futData = await loadData(state.person, alvo.year, alvo.month);
+          futData.despesas.push({nome, valor, vencimento: dia, pago:false, parcelaId, parcelaIndex: i, parcelaTotal: parcelas});
+          saveData(state.person, alvo.year, alvo.month);
+        }
       }
-      dayI.value=''; nameI.value=''; valI.value=''; parcI.value='';
+      dayI.value=''; nameI.value=''; valI.value=''; parcI.value=''; recorrenteI.checked=false;
     };
     card.appendChild(addLine);
 
