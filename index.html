@@ -156,6 +156,13 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
 .status-toggle.pendente{color:#a8620c}
 .status-toggle.pago{color:var(--verde)}
 .status-toggle.atrasada{color:#a8231a}
+.conta-tag{font-weight:800}
+.conta-tag.conta-ce{color:var(--azul-escuro)}
+.conta-tag.conta-cp{color:#c2185b}
+.modal-btn.btn-ce{background:var(--azul-escuro);border-color:var(--azul-escuro);color:#fff}
+.modal-btn.btn-ce:hover{background:#134a83}
+.modal-btn.btn-cp{background:#c2185b;border-color:#c2185b;color:#fff}
+.modal-btn.btn-cp:hover{background:#9c1249}
 
 .empty-hint{font-size:12.5px;color:var(--texto-sec);font-style:italic;padding:8px 0}
 
@@ -1188,6 +1195,27 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
     return card;
   }
 
+  function abrirModalConta(){
+    return new Promise((resolve)=>{
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-box">
+          <div class="modal-titulo">Pago em qual conta?</div>
+          <div class="modal-texto">Escolha em qual das suas contas esse pagamento saiu.</div>
+          <div class="modal-botoes">
+            <button class="modal-btn btn-ce" data-v="C.E">C.E</button>
+            <button class="modal-btn btn-cp" data-v="C.P">C.P</button>
+            <button class="modal-btn cancelar" data-v="">Cancelar</button>
+          </div>
+        </div>`;
+      overlay.querySelectorAll('.modal-btn').forEach(b=>{
+        b.onclick = ()=>{ document.body.removeChild(overlay); resolve(b.dataset.v || null); };
+      });
+      document.body.appendChild(overlay);
+    });
+  }
+
   function confirmCopia(qtd, mesLabel, ano){
     return new Promise((resolve)=>{
       const overlay = document.createElement('div');
@@ -1312,9 +1340,22 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
 
       const stamp = document.createElement('button');
       stamp.className = 'status-toggle ' + (d.pago ? 'pago' : (atrasada ? 'atrasada' : 'pendente'));
-      stamp.textContent = d.pago ? '✓ PAGO' : (atrasada ? '⚠ ATRASADA' : 'PENDENTE');
-      stamp.onclick = ()=>{
-        data.despesas[d._i].pago = !data.despesas[d._i].pago;
+      if(d.pago){
+        stamp.innerHTML = d.contaPagamento ? `✓ PAGO EM <span class="conta-tag conta-${d.contaPagamento === 'C.E' ? 'ce' : 'cp'}">${d.contaPagamento}</span>` : '✓ PAGO';
+      } else {
+        stamp.textContent = atrasada ? '⚠ ATRASADA' : 'PENDENTE';
+      }
+      stamp.onclick = async ()=>{
+        const despesa = data.despesas[d._i];
+        if(state.person === 'home' && !despesa.pago){
+          const escolha = await abrirModalConta();
+          if(!escolha) return;
+          despesa.pago = true;
+          despesa.contaPagamento = escolha;
+        } else {
+          despesa.pago = !despesa.pago;
+          if(!despesa.pago) despesa.contaPagamento = null;
+        }
         persistAndRerender();
       };
       row.appendChild(stamp);
