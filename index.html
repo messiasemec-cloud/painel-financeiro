@@ -737,18 +737,19 @@ body.aba-paulo .painel-titulo{color:#fff;font-weight:700}
     const despesas = data.despesas || [];
     const pendentes = despesas.filter(d=>!d.pago).length;
     const atrasadas = despesas.filter(d=>isAtrasada(d)).length;
+    const restante = despesas.filter(d=>!d.pago).reduce((t,d)=>t+(Number(d.valor)||0),0);
     if(despesas.length === 0){
       div.className = 'status-banner neutro';
       div.textContent = 'Nenhuma conta lançada neste mês ainda.';
     } else if(atrasadas > 0){
       div.className = 'status-banner atrasada';
-      div.textContent = `🔴 ${atrasadas} conta${atrasadas>1?'s':''} atrasada${atrasadas>1?'s':''}!`;
+      div.textContent = `🔴 ${atrasadas} conta${atrasadas>1?'s':''} atrasada${atrasadas>1?'s':''}! — falta pagar R$ ${fmt(restante)}`;
     } else if(pendentes === 0){
       div.className = 'status-banner ok';
       div.textContent = '✅ Tudo pago neste mês!';
     } else {
       div.className = 'status-banner pendente';
-      div.textContent = `⚠️ ${pendentes} conta${pendentes>1?'s':''} pendente${pendentes>1?'s':''} (ainda dentro do prazo)`;
+      div.textContent = `⚠️ ${pendentes} conta${pendentes>1?'s':''} pendente${pendentes>1?'s':''} (ainda dentro do prazo) — falta pagar R$ ${fmt(restante)}`;
     }
     return div;
   }
